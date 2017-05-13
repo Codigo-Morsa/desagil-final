@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "937737561360",
+    "firebase_url": "https://songsync-c6c65.firebaseio.com",
+    "project_id": "songsync-c6c65",
+    "storage_bucket": "songsync-c6c65.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:937737561360:android:e769ffecd89acc05",
+        "android_client_info": {
+          "package_name": "pesadadobatata.songsync"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "937737561360-5aio1imqtbkdp3ai1o927qn4q8kvu5bu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pesadadobatata.songsync",
+            "certificate_hash": "35202c31e1ea826dbd0a188ba830dc5d7d26f1bf"
+          }
+        },
+        {
+          "client_id": "937737561360-p63rj5f7e2ine3banrkoreaupor8ht4v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2IudTQR2ezzZbAvtW2Ll6PXERBNpAQko"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "937737561360-p63rj5f7e2ine3banrkoreaupor8ht4v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

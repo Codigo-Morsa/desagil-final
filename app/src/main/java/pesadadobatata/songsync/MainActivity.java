@@ -2,11 +2,15 @@ package pesadadobatata.songsync;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +23,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.support.annotation.NonNull;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
@@ -30,14 +39,18 @@ import com.spotify.sdk.android.player.PlayerEvent;
 import com.spotify.sdk.android.player.Spotify;
 import com.spotify.sdk.android.player.SpotifyPlayer;
 
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import kaaes.spotify.webapi.android.SpotifyApi;
 
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         SpotifyPlayer.NotificationCallback,
         ConnectionStateCallback {
+
     private static final int REQUEST_CODE = 1337;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private FirebaseAuth mAuth;
@@ -46,10 +59,34 @@ public class MainActivity extends AppCompatActivity
     // TODO: Replace with your redirect URI
     private static final String REDIRECT_URI = "songsync://callback";
     private Player mPlayer;
+    private Button loginbutton;
+    private Button signinbutton;
+    private ImageView iv;
+    private TextView tv;
+    private ProgressBar pb;
+    private boolean userState;
+    private SpotifyApi api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        SpotifyApi api = new SpotifyApi();
+
+        final Button loginbutton = (Button) findViewById(R.id.loginbutton);
+        final Button signinbutton = (Button) findViewById(R.id.signinbutton);
+        final ImageView iv = (ImageView) findViewById(R.id.imageView2);
+        final TextView tv = (TextView) findViewById(R.id.textView2);
+        final ProgressBar pb = (ProgressBar) findViewById(R.id.progressBar2);
+
+        Context context = getApplicationContext();
+
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View cv = inflater.inflate(R.layout.content_main, null);
+
+        final ConstraintLayout cl = (ConstraintLayout) cv.findViewById(R.id.cl);
+
+        Log.d("AEAWWA", String.valueOf(cl.isActivated()));
 
         mAuth =  FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -59,36 +96,48 @@ public class MainActivity extends AppCompatActivity
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     // User is signed in
+                    userState = true;
                     Log.d("kk", "onAuthStateChanged:signed_in:" + user.getUid());
+                    pb.setVisibility(View.GONE);
+                    loginbutton.setVisibility(View.GONE);
+                    signinbutton.setVisibility(View.GONE);
+                    iv.setVisibility(View.GONE);
+                    tv.setVisibility(View.GONE);
+                    authSpotify();
+
                 } else {
                     // User is signed out
+                    userState = false;
                     Log.d("kk", "onAuthStateChanged:signed_out");
+                    pb.setVisibility(View.GONE);
+                    loginbutton.setVisibility(View.VISIBLE);
+                    signinbutton.setVisibility(View.VISIBLE);
+                    iv.setVisibility(View.VISIBLE);
+                    tv.setVisibility(View.VISIBLE);
+
+//                    for (int i = 0; i<= cl.getChildCount() ; i ++){
+//                        cl.getChildAt(i).setVisibility(View.VISIBLE);
+//                    }
+    //                Log.d("jikasa", String.valueOf(cl.getChildCount()));
+    //                Log.d("kk", String.valueOf(cl.getChildAt(0).getId()));
+    //                cl.getChildAt(0).setVisibility(View.GONE);
                 }
                 // ...
             }
         };
 
-        setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID,
-                AuthenticationResponse.Type.TOKEN,
-                REDIRECT_URI);
-        builder.setScopes(new String[]{"user-read-private", "streaming"});
-        AuthenticationRequest request = builder.build();
-
-        AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
-
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -100,6 +149,16 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
     }
 
+    public void authSpotify(){
+        AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID,
+                AuthenticationResponse.Type.TOKEN,
+                REDIRECT_URI);
+        builder.setScopes(new String[]{"user-read-private", "streaming"});
+        AuthenticationRequest request = builder.build();
+
+        AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
+    }
+
     public void onLoginButtonPressed(View view){
         Intent myIntent = new Intent(this, LoginActivity.class);
         startActivity(myIntent);
@@ -108,6 +167,10 @@ public class MainActivity extends AppCompatActivity
     public void onSignupButtonPressed(View view){
         Intent myIntent = new Intent(this, SignupActivity.class);
         startActivity(myIntent);
+    }
+
+    public void signOut(MenuItem menuItem){
+        FirebaseAuth.getInstance().signOut();
     }
 
     @Override
@@ -184,7 +247,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLoggedIn() {
         Log.d("MainActivity", "User logged in");
-        mPlayer.playUri(null, "spotify:track:2TpxZ7JUBn3uw46aR7qd6V", 0, 0);
+        mPlayer.playUri(null, "spotify:track:4tNaC9xdo65pgl1QAaygA4", 0, 0);
     }
 
     @Override
@@ -230,6 +293,8 @@ public class MainActivity extends AppCompatActivity
 
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
+        Log.d("ACTIVITY","Returned to MainActivity");
+
         // Check if result comes from the correct activity
         if (requestCode == REQUEST_CODE) {
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
@@ -251,6 +316,7 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
+
 
 
 //    @Override

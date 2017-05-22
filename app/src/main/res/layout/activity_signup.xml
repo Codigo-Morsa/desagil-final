@@ -3,7 +3,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/bgbottom"
     android:fitsSystemWindows="true">
 
     <LinearLayout
@@ -15,15 +14,6 @@
         android:paddingRight="24dp"
         android:weightSum="1">
 
-        <ImageView
-            android:id="@+id/imageView3"
-            android:layout_width="wrap_content"
-            android:layout_height="72dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="24dp"
-            android:src="@drawable/spotisync3"
-            android:layout_weight="0.13" />
-
         <!--  Name Label -->
 
         <!-- Email Label -->
@@ -33,7 +23,7 @@
             android:id="@+id/input_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="@android:color/background_light"
+            android:backgroundTint="@color/semiGreen"
             android:hint="Email"
             android:inputType="textEmailAddress"
             android:textColorHint="@android:color/darker_gray" />
@@ -51,17 +41,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0.13"
-            android:backgroundTint="@android:color/background_light"
+            android:backgroundTint="@color/semiGreen"
             android:hint="Usuário"
             android:inputType="textCapWords"
             android:textColorHint="@android:color/darker_gray" />
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp">
+
+        </android.support.design.widget.TextInputLayout>
 
         <EditText
             android:id="@+id/input_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0.13"
-            android:backgroundTint="@android:color/background_light"
+            android:backgroundTint="@color/semiGreen"
             android:hint="Senha"
             android:inputType="textPassword"
             android:textColorHint="@android:color/darker_gray" />

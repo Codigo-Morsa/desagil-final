@@ -13,10 +13,17 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import android.support.annotation.NonNull;
 
-public class LoginActivity extends AppCompatActivity {
+
+public class    LoginActivity extends AppCompatActivity implements OnCompleteListener {
     private static final String TAG = "LoginActivity";
     private static final int REQUEST_SIGNUP = 0;
 
@@ -25,12 +32,14 @@ public class LoginActivity extends AppCompatActivity {
     @InjectView(R.id.btn_login) Button _loginButton;
     @InjectView(R.id.link_signup) TextView _signupLink;
 
+    private FirebaseAuth mAuth;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.inject(this);
-        int bgid = R.drawable.bgtop;
+        mAuth = FirebaseAuth.getInstance();
 
 //        this.getActionBar().setBackgroundDrawable(getDrawable(bgid));
 //        this.getActionBar().setBackgroundDrawable(Drawable.createFromPath("res/drawable/bgtop.png"));
@@ -72,7 +81,23 @@ public class LoginActivity extends AppCompatActivity {
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
 
-        // TODO: Implement your own authentication logic here.
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
+                        // If sign in fails, display a message to the user. If sign in succeeds
+                        // the auth state listener will be notified and logic to handle the
+                        // signed in user can be handled in the listener.
+                        if (!task.isSuccessful()) {
+                            onLoginFailed();
+                            Log.w(TAG, "signInWithEmail:failed", task.getException());
+                            Toast.makeText(LoginActivity.this, "Login failed",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
 
         new android.os.Handler().postDelayed(
                 new Runnable() {
@@ -136,5 +161,10 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         return valid;
+    }
+
+    @Override
+    public void onComplete(@NonNull Task task) {
+
     }
 }

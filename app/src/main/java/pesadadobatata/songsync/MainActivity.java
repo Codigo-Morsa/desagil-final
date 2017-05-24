@@ -48,6 +48,13 @@ import com.google.firebase.auth.FirebaseUser;
 import java.util.zip.Inflater;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
+import kaaes.spotify.webapi.android.SpotifyCallback;
+import kaaes.spotify.webapi.android.SpotifyError;
+import kaaes.spotify.webapi.android.SpotifyService;
+import kaaes.spotify.webapi.android.models.Pager;
+import kaaes.spotify.webapi.android.models.SavedTrack;
+import kaaes.spotify.webapi.android.models.TracksPager;
+import retrofit.client.Response;
 
 
 public class MainActivity extends AppCompatActivity
@@ -70,13 +77,12 @@ public class MainActivity extends AppCompatActivity
     private ProgressBar pb;
     private boolean userState;
     private SpotifyApi api;
+    public String spotifyToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        SpotifyApi api = new SpotifyApi();
-
         final Button loginbutton = (Button) findViewById(R.id.loginbutton);
         final Button signinbutton = (Button) findViewById(R.id.signinbutton);
         final ImageView iv = (ImageView) findViewById(R.id.imageView2);
@@ -129,9 +135,9 @@ public class MainActivity extends AppCompatActivity
 //                    for (int i = 0; i<= cl.getChildCount() ; i ++){
 //                        cl.getChildAt(i).setVisibility(View.VISIBLE);
 //                    }
-    //                Log.d("jikasa", String.valueOf(cl.getChildCount()));
-    //                Log.d("kk", String.valueOf(cl.getChildAt(0).getId()));
-    //                cl.getChildAt(0).setVisibility(View.GONE);
+                    //                Log.d("jikasa", String.valueOf(cl.getChildCount()));
+                    //                Log.d("kk", String.valueOf(cl.getChildAt(0).getId()));
+                    //                cl.getChildAt(0).setVisibility(View.GONE);
                 }
                 // ...
             }
@@ -263,7 +269,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLoggedIn() {
         Log.d("MainActivity", "User logged in");
-        mPlayer.playUri(null, "spotify:track:4tNaC9xdo65pgl1QAaygA4", 0, 0);
+        startWebAPI();
+
+//        mPlayer.playUri(null, "spotify:track:4tNaC9xdo65pgl1QAaygA4", 0, 0);
     }
 
     @Override
@@ -314,6 +322,8 @@ public class MainActivity extends AppCompatActivity
         // Check if result comes from the correct activity
         if (requestCode == REQUEST_CODE) {
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
+            spotifyToken = response.getAccessToken();
+            Log.d("Token", spotifyToken);
             if (response.getType() == AuthenticationResponse.Type.TOKEN) {
                 Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
                 Spotify.getPlayer(playerConfig, this, new SpotifyPlayer.InitializationObserver() {
@@ -332,7 +342,39 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
+    protected void startWebAPI (){
+        SpotifyApi api = new SpotifyApi();
+        api.setAccessToken(spotifyToken);
+        SpotifyService spotify = api.getService();
 
+//        spotify.getMySavedTracks(new SpotifyCallback<Pager<SavedTrack>>() {
+//            public void success(Pager<SavedTrack> savedTrackPager, Response response) {
+//                Log.d("SPOTIFY-REQUEST:",savedTrackPager.toString());
+//            }
+//
+//            public void failure(SpotifyError error) {
+//                Log.d("ERROR:",error.getErrorDetails().toString());
+//            }
+//        });
+
+        spotify.searchTracks("sweet dreams", new SpotifyCallback<TracksPager>() {
+
+            @Override
+            public void success(TracksPager tracksPager, Response response) {
+                Log.d("SPOTIFY-REQUEST:",tracksPager.tracks.items.get(0).uri);
+                mPlayer.playUri(null, tracksPager.tracks.items.get(0).uri, 0, 0);
+//                mPlayer.playUri(tracksPager.tracks.items.get(0).uri);
+            }
+
+            @Override
+            public void failure(SpotifyError spotifyError) {
+                Log.d("ERROR:",spotifyError.getErrorDetails().toString());
+            }
+        });
+
+
+
+    }
 
 
 //    @Override
@@ -361,3 +403,10 @@ public class MainActivity extends AppCompatActivity
 
 
 }
+
+
+
+
+
+
+

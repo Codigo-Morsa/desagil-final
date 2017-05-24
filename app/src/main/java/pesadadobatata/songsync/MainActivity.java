@@ -24,6 +24,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.support.annotation.NonNull;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -42,6 +44,8 @@ import com.spotify.sdk.android.player.SpotifyPlayer;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import java.util.zip.Inflater;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 
@@ -78,6 +82,8 @@ public class MainActivity extends AppCompatActivity
         final ImageView iv = (ImageView) findViewById(R.id.imageView2);
         final TextView tv = (TextView) findViewById(R.id.textView2);
         final ProgressBar pb = (ProgressBar) findViewById(R.id.progressBar2);
+        final ImageButton sb = (ImageButton) findViewById(R.id.searchButton);
+        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
 
         Context context = getApplicationContext();
 
@@ -103,6 +109,8 @@ public class MainActivity extends AppCompatActivity
                     signinbutton.setVisibility(View.GONE);
                     iv.setVisibility(View.GONE);
                     tv.setVisibility(View.GONE);
+                    sb.setVisibility(View.VISIBLE);
+                    ssf.setVisibility(View.VISIBLE);
                     authSpotify();
 
                 } else {
@@ -114,6 +122,9 @@ public class MainActivity extends AppCompatActivity
                     signinbutton.setVisibility(View.VISIBLE);
                     iv.setVisibility(View.VISIBLE);
                     tv.setVisibility(View.VISIBLE);
+                    ssf.setVisibility(View.GONE);
+                    sb.setVisibility(View.GONE);
+
 
 //                    for (int i = 0; i<= cl.getChildCount() ; i ++){
 //                        cl.getChildAt(i).setVisibility(View.VISIBLE);
@@ -147,6 +158,9 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+//        Inflater searchButton = Inflate r;
+//        View cv = inflater.inflate(R.layout.content_main, null);
     }
 
     public void authSpotify(){
@@ -187,6 +201,8 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+//        inflate(R.layout.app_bar_main,menu);
+
         return true;
     }
 

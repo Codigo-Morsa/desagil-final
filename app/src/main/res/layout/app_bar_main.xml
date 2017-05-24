@@ -7,6 +7,17 @@
     android:background="@drawable/bgtop"
     tools:context="pesadadobatata.songsync.MainActivity">
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="51dp"
+        android:layout_height="51dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:visibility="gone"
+        app:backgroundTint="@color/fadingGreen"
+        app:srcCompat="@android:drawable/ic_menu_search" />
+
+
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -17,22 +28,29 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@drawable/bgtop"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            app:popupTheme="@style/AppTheme.PopupOverlay">
+
+            <ImageButton
+                android:id="@+id/searchButton"
+                android:layout_width="60dp"
+                android:layout_height="58dp"
+                android:layout_gravity="top|right"
+                android:background="@android:color/transparent"
+                android:contentDescription="sein"
+                android:visibility="gone"
+                app:layout_anchor="@+id/include"
+                app:layout_anchorGravity="top|right"
+                app:srcCompat="@android:drawable/ic_menu_search" />
+        </android.support.v7.widget.Toolbar>
+
 
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:visibility="gone"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
+
 
     <include
+        android:id="@+id/include"
         layout="@layout/content_main"
-        android:visibility="visible"
-        android:id="@+id/include" />
+        android:visibility="visible" />
 
 </android.support.design.widget.CoordinatorLayout>

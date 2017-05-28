@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    tools:context="pesadadobatata.songsync.SearchActivity">
+
+    <EditText
+        android:id="@+id/songsearchField"
+        android:layout_width="299dp"
+        android:layout_height="42dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="31dp"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/spotifyGreen"
+        android:ems="10"
+        android:hint="Procure uma música"
+        android:inputType="textPersonName"
+        android:textColor="@android:color/white"
+        android:textColorHint="@android:color/darker_gray"
+        android:textColorLink="@color/colorPrimary"
+        app:layout_constraintBottom_toTopOf="@+id/listView"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.148"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHorizontal_bias="0.0" />
+
+    <ImageButton
+        android:id="@+id/searchsongsButton"
+        android:layout_width="95dp"
+        android:layout_height="35dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/round_corners"
+        android:onClick="searchSongs"
+        app:layout_constraintBottom_toTopOf="@+id/listView"
+        app:layout_constraintHorizontal_bias="0.502"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editText"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@android:drawable/ic_menu_search" />
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="337dp"
+        android:layout_height="399dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.4"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        tools:layout_editor_absoluteX="27dp"
+        tools:layout_editor_absoluteY="112dp" />
+
+</android.support.constraint.ConstraintLayout>

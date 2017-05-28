@@ -1,16 +1,11 @@
 package pesadadobatata.songsync;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
+import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
-import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,12 +19,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.support.annotation.NonNull;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.common.net.InternetDomainName;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
@@ -44,17 +39,18 @@ import com.spotify.sdk.android.player.SpotifyPlayer;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.squareup.picasso.Picasso;
 
-import java.util.zip.Inflater;
+import java.util.Objects;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyCallback;
 import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Pager;
-import kaaes.spotify.webapi.android.models.SavedTrack;
+import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.TracksPager;
 import retrofit.client.Response;
+import samplesearch.SearchActivity;
 
 
 public class MainActivity extends AppCompatActivity
@@ -62,13 +58,12 @@ public class MainActivity extends AppCompatActivity
         SpotifyPlayer.NotificationCallback,
         ConnectionStateCallback {
 
-    private static final int REQUEST_CODE = 1337;
+
     private FirebaseAuth.AuthStateListener mAuthListener;
     private FirebaseAuth mAuth;
     private FirebaseUser user;
-    private static final String CLIENT_ID = "ae616876bd5545a8918eac8ce5af7c5f";
-    // TODO: Replace with your redirect URI
-    private static final String REDIRECT_URI = "songsync://callback";
+
+    private static final int REQUEST_CODE = 1337;
     private Player mPlayer;
     private Button loginbutton;
     private Button signinbutton;
@@ -78,6 +73,9 @@ public class MainActivity extends AppCompatActivity
     private boolean userState;
     private SpotifyApi api;
     public String spotifyToken;
+    private Context context;
+    private Boolean hasToken = false;
+    private ImageView thumbnail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,8 +86,10 @@ public class MainActivity extends AppCompatActivity
         final ImageView iv = (ImageView) findViewById(R.id.imageView2);
         final TextView tv = (TextView) findViewById(R.id.textView2);
         final ProgressBar pb = (ProgressBar) findViewById(R.id.progressBar2);
-        final ImageButton sb = (ImageButton) findViewById(R.id.searchButton);
-        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
+        final ImageButton fb = (ImageButton) findViewById(R.id.friendsButton);
+        final ImageButton sb = (ImageButton) findViewById(R.id.searchButton2);
+//        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
+        thumbnail = (ImageView) findViewById(R.id.thumbnailView);
 
         Context context = getApplicationContext();
 
@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity
         final ConstraintLayout cl = (ConstraintLayout) cv.findViewById(R.id.cl);
 
         Log.d("AEAWWA", String.valueOf(cl.isActivated()));
-
+        Log.d("eaemenkk", SpotifyAPI.getString());
         mAuth =  FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
 
@@ -116,8 +116,14 @@ public class MainActivity extends AppCompatActivity
                     iv.setVisibility(View.GONE);
                     tv.setVisibility(View.GONE);
                     sb.setVisibility(View.VISIBLE);
-                    ssf.setVisibility(View.VISIBLE);
-                    authSpotify();
+//                    ssf.setVisibility(View.VISIBLE);
+                    fb.setVisibility(View.VISIBLE);
+                    if (!MainActivity.this.hasToken){
+                        SpotifyAPI.authSpotify(MainActivity.this);
+                    }
+//
+
+
 
                 } else {
                     // User is signed out
@@ -128,8 +134,9 @@ public class MainActivity extends AppCompatActivity
                     signinbutton.setVisibility(View.VISIBLE);
                     iv.setVisibility(View.VISIBLE);
                     tv.setVisibility(View.VISIBLE);
-                    ssf.setVisibility(View.GONE);
+//                    ssf.setVisibility(View.GONE);
                     sb.setVisibility(View.GONE);
+                    fb.setVisibility(View.GONE);
 
 
 //                    for (int i = 0; i<= cl.getChildCount() ; i ++){
@@ -169,15 +176,11 @@ public class MainActivity extends AppCompatActivity
 //        View cv = inflater.inflate(R.layout.content_main, null);
     }
 
-    public void authSpotify(){
-        AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID,
-                AuthenticationResponse.Type.TOKEN,
-                REDIRECT_URI);
-        builder.setScopes(new String[]{"user-read-private", "streaming"});
-        AuthenticationRequest request = builder.build();
-
-        AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
+    public void goToSearchActivity(View view){
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        startActivity(new Intent(this, SearchActivity.class));
     }
+
 
     public void onLoginButtonPressed(View view){
         Intent myIntent = new Intent(this, LoginActivity.class);
@@ -255,7 +258,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onStart() {
         super.onStart();
-        mAuth.addAuthStateListener(mAuthListener);
+        Log.d("ACTIVITY","Returned to MainActivity via onStart");
+        if (mAuthListener != null){
+            mAuth.addAuthStateListener(mAuthListener);
+        }
+        if (!Objects.equals(SpotifyAPI.getUri(), "")){
+            playSong();
+            drawSongThumbnail();
+        }
     }
 
     @Override
@@ -266,11 +276,18 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    public void playSong(){
+        mPlayer.playUri(null, SpotifyAPI.getUri(),0,0);
+    }
+
+    public void drawSongThumbnail(){
+        thumbnail.setVisibility(View.VISIBLE);
+        Picasso.with(context).load(SpotifyAPI.getThumbnailUrl()).into(thumbnail);
+    }
+
     @Override
     public void onLoggedIn() {
         Log.d("MainActivity", "User logged in");
-        startWebAPI();
-
 //        mPlayer.playUri(null, "spotify:track:4tNaC9xdo65pgl1QAaygA4", 0, 0);
     }
 
@@ -316,16 +333,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
         Log.d("ACTIVITY","Returned to MainActivity");
-
-        // Check if result comes from the correct activity
-        if (requestCode == REQUEST_CODE) {
+         //Check if result comes from the correct activity
+        if (requestCode == REQUEST_CODE && this.hasToken == false) {
+            super.onActivityResult(requestCode, resultCode, intent);
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
-            spotifyToken = response.getAccessToken();
-            Log.d("Token", spotifyToken);
             if (response.getType() == AuthenticationResponse.Type.TOKEN) {
-                Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
+                spotifyToken = response.getAccessToken();
+                Log.d("Token", spotifyToken);
+                SpotifyAPI.setSpotifyToken(spotifyToken);
+                this.hasToken = true;
+                SpotifyAPI.startWebAPI();
+                Config playerConfig = new Config(this, SpotifyAPI.getSpotifyToken(), SpotifyAPI.getClientID());
                 Spotify.getPlayer(playerConfig, this, new SpotifyPlayer.InitializationObserver() {
                     @Override
                     public void onInitialized(SpotifyPlayer spotifyPlayer) {
@@ -342,39 +361,7 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
-    protected void startWebAPI (){
-        SpotifyApi api = new SpotifyApi();
-        api.setAccessToken(spotifyToken);
-        SpotifyService spotify = api.getService();
 
-//        spotify.getMySavedTracks(new SpotifyCallback<Pager<SavedTrack>>() {
-//            public void success(Pager<SavedTrack> savedTrackPager, Response response) {
-//                Log.d("SPOTIFY-REQUEST:",savedTrackPager.toString());
-//            }
-//
-//            public void failure(SpotifyError error) {
-//                Log.d("ERROR:",error.getErrorDetails().toString());
-//            }
-//        });
-
-        spotify.searchTracks("sweet dreams", new SpotifyCallback<TracksPager>() {
-
-            @Override
-            public void success(TracksPager tracksPager, Response response) {
-                Log.d("SPOTIFY-REQUEST:",tracksPager.tracks.items.get(0).uri);
-                mPlayer.playUri(null, tracksPager.tracks.items.get(0).uri, 0, 0);
-//                mPlayer.playUri(tracksPager.tracks.items.get(0).uri);
-            }
-
-            @Override
-            public void failure(SpotifyError spotifyError) {
-                Log.d("ERROR:",spotifyError.getErrorDetails().toString());
-            }
-        });
-
-
-
-    }
 
 
 //    @Override

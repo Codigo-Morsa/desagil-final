@@ -34,6 +34,9 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
+    // This library handles music playback
+    // This library handles authentication and authorization
+
     compile 'com.github.kaaes:spotify-web-api-android:0.4.1'
     compile 'com.google.firebase:firebase-core:9.6.1'
     compile 'com.google.firebase:firebase-auth:9.6.1'
@@ -43,12 +46,10 @@ dependencies {
     compile 'com.android.support:design:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.jakewharton:butterknife:6.1.0'
-
     compile 'com.spotify.sdk:spotify-android-auth:1.0.0@aar'
-    // This library handles music playback
     compile 'com.spotify.sdk:spotify-player:24-noconnect-2.20b@aar'
-    // This library handles authentication and authorization
-
+    compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.google.guava:guava:20.0'
     testCompile 'junit:junit:4.12'
 }
 

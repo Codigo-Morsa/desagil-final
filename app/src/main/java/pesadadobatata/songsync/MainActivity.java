@@ -25,6 +25,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.common.net.InternetDomainName;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
@@ -41,6 +43,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -51,6 +55,10 @@ import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.TracksPager;
 import retrofit.client.Response;
 import samplesearch.SearchActivity;
+
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.DataSnapshot;
 
 
 public class MainActivity extends AppCompatActivity
@@ -76,6 +84,8 @@ public class MainActivity extends AppCompatActivity
     private Context context;
     private Boolean hasToken = false;
     private ImageView thumbnail;
+    private DatabaseReference mDatabase;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +111,8 @@ public class MainActivity extends AppCompatActivity
         Log.d("AEAWWA", String.valueOf(cl.isActivated()));
         Log.d("eaemenkk", SpotifyAPI.getString());
         mAuth =  FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
         mAuthListener = new FirebaseAuth.AuthStateListener() {
 
             @Override
@@ -122,8 +134,6 @@ public class MainActivity extends AppCompatActivity
                         SpotifyAPI.authSpotify(MainActivity.this);
                     }
 //
-
-
 
                 } else {
                     // User is signed out
@@ -150,6 +160,23 @@ public class MainActivity extends AppCompatActivity
             }
         };
 
+//        // Read from the database
+//        mDatabase.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                // This method is called once with the initial value and again
+//                // whenever data at this location is updated.
+////                Map<String, String> value = dataSnapshot.getValue(Map.class);
+//                Map<String, String> value = (Map<String, String>) dataSnapshot.getValue();
+//                Log.d("Database now", "Value is: " + value);
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError error) {
+//                // Failed to read value
+//                Log.w("Erou", "Failed to read value.", error.toException());
+//            }
+//        });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -179,6 +206,10 @@ public class MainActivity extends AppCompatActivity
     public void goToSearchActivity(View view){
         Intent intent = new Intent(Intent.ACTION_MAIN);
         startActivity(new Intent(this, SearchActivity.class));
+    }
+    public void goToFriendsActivity(View view){
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        startActivity(new Intent(this, FriendsActivity.class));
     }
 
 

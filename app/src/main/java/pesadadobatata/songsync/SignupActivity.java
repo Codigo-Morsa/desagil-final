@@ -18,6 +18,9 @@ import butterknife.InjectView;
 import android.support.annotation.NonNull;
 import com.google.firebase.auth.AuthResult;
 
+import java.util.HashMap;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class SignupActivity extends AppCompatActivity implements OnCompleteListener {
     private static final String TAG = "SignupActivity";
@@ -29,6 +32,8 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
     @InjectView(R.id.link_login) TextView _loginLink;
 
     private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
+
 
 
     @Override
@@ -37,6 +42,8 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
         setContentView(R.layout.activity_signup);
         ButterKnife.inject(this);
         mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
 
         int bgid = R.drawable.bgtop;
       //  getActionBar().setBackgroundDrawable(getDrawable(bgid));
@@ -114,7 +121,14 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
     public void onSignupSuccess() {
         _signupButton.setEnabled(true);
         setResult(RESULT_OK, null);
+        writeNewUser(mAuth.getCurrentUser().getUid(), _nameText.getText().toString());
+        Log.d("Alo", String.valueOf(mAuth.getCurrentUser().getUid()));
         finish();
+    }
+    private void writeNewUser(String userId, String name) {
+        HashMap<String, String> user = new HashMap<>();
+        user.put("Username", name);
+        mDatabase.child("users").child(userId).setValue(user);
     }
 
     public void onSignupFailed() {

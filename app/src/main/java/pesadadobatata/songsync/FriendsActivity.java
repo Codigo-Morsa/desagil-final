@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 
 
@@ -60,6 +61,9 @@ public class FriendsActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        final List<String> emptylist = new ArrayList<String>();
+        final ArrayAdapter<String> emptygridViewArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, emptylist);
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -73,6 +77,10 @@ public class FriendsActivity extends AppCompatActivity {
         final ValueEventListener valueEventListener = mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+
+                list.setAdapter(null);
+                userNames.clear();
+
                 for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
                     String uid = (String) messageSnapshot.getKey();
                     String userName = (String) messageSnapshot.child("Username").getValue();

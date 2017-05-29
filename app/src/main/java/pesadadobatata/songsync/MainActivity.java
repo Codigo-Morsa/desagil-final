@@ -123,8 +123,6 @@ public class MainActivity extends AppCompatActivity
                     }
 //
 
-
-
                 } else {
                     // User is signed out
                     userState = false;

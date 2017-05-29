@@ -160,23 +160,23 @@ public class MainActivity extends AppCompatActivity
             }
         };
 
-        // Read from the database
-        mDatabase.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-//                Map<String, String> value = dataSnapshot.getValue(Map.class);
-                Map<String, String> value = (Map<String, String>) dataSnapshot.getValue();
-                Log.d("Database now", "Value is: " + value);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w("Erou", "Failed to read value.", error.toException());
-            }
-        });
+//        // Read from the database
+//        mDatabase.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                // This method is called once with the initial value and again
+//                // whenever data at this location is updated.
+////                Map<String, String> value = dataSnapshot.getValue(Map.class);
+//                Map<String, String> value = (Map<String, String>) dataSnapshot.getValue();
+//                Log.d("Database now", "Value is: " + value);
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError error) {
+//                // Failed to read value
+//                Log.w("Erou", "Failed to read value.", error.toException());
+//            }
+//        });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -206,6 +206,10 @@ public class MainActivity extends AppCompatActivity
     public void goToSearchActivity(View view){
         Intent intent = new Intent(Intent.ACTION_MAIN);
         startActivity(new Intent(this, SearchActivity.class));
+    }
+    public void goToFriendsActivity(View view){
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        startActivity(new Intent(this, FriendsActivity.class));
     }
 
 

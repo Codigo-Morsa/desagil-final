@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
 //                Map<String, String> value = dataSnapshot.getValue(Map.class);
-                Map<String, Object> value = (Map<String, Object>) dataSnapshot.getValue();
+                Map<String, String> value = (Map<String, String>) dataSnapshot.getValue();
                 Log.d("Database now", "Value is: " + value);
             }
 

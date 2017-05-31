@@ -54,6 +54,7 @@ import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.TracksPager;
 import retrofit.client.Response;
+import samplesearch.Search;
 import samplesearch.SearchActivity;
 
 import com.google.firebase.database.DatabaseError;
@@ -84,6 +85,8 @@ public class MainActivity extends AppCompatActivity
     private Context context;
     private Boolean hasToken = false;
     private ImageView thumbnail;
+    private Button playButton;
+    private Button pauseButton;
     private DatabaseReference mDatabase;
 
 
@@ -100,6 +103,8 @@ public class MainActivity extends AppCompatActivity
         final ImageButton sb = (ImageButton) findViewById(R.id.searchButton2);
 //        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
         thumbnail = (ImageView) findViewById(R.id.thumbnailView);
+        playButton = (Button) findViewById(R.id.playButton);
+        pauseButton = (Button) findViewById(R.id.pauseButton);
 
         Context context = getApplicationContext();
 
@@ -294,7 +299,7 @@ public class MainActivity extends AppCompatActivity
             mAuth.addAuthStateListener(mAuthListener);
         }
         if (!Objects.equals(SpotifyAPI.getUri(), "")){
-            playSong();
+            //playSong();
             drawSongThumbnail();
         }
     }
@@ -307,12 +312,22 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void playSong(){
+    public void playSong(View view){
         mPlayer.playUri(null, SpotifyAPI.getUri(),0,0);
+        playButton.setVisibility(View.GONE);
+        pauseButton.setVisibility(View.VISIBLE);
+
     }
+
+    public void pauseSong(View view){
+        mPlayer.pause(null);
+        pauseButton.setVisibility(View.GONE);
+    }
+
 
     public void drawSongThumbnail(){
         thumbnail.setVisibility(View.VISIBLE);
+        playButton.setVisibility(View.VISIBLE);
         Picasso.with(context).load(SpotifyAPI.getThumbnailUrl()).into(thumbnail);
     }
 
@@ -363,6 +378,8 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+
+
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         Log.d("ACTIVITY","Returned to MainActivity");
          //Check if result comes from the correct activity
@@ -382,6 +399,7 @@ public class MainActivity extends AppCompatActivity
                         mPlayer = spotifyPlayer;
                         mPlayer.addConnectionStateCallback(MainActivity.this);
                         mPlayer.addNotificationCallback(MainActivity.this);
+
                     }
 
                     @Override

@@ -1,10 +1,13 @@
 package pesadadobatata.songsync;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -64,7 +67,7 @@ import com.google.firebase.database.DataSnapshot;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         SpotifyPlayer.NotificationCallback,
-        ConnectionStateCallback {
+        ConnectionStateCallback, RequestHandlerListener {
 
 
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -85,7 +88,8 @@ public class MainActivity extends AppCompatActivity
     private Boolean hasToken = false;
     private ImageView thumbnail;
     private DatabaseReference mDatabase;
-
+    private Boolean rhloaded = false;
+    private RequestHandler rh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,7 +105,7 @@ public class MainActivity extends AppCompatActivity
 //        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
         thumbnail = (ImageView) findViewById(R.id.thumbnailView);
 
-        Context context = getApplicationContext();
+        final Context context = getApplicationContext();
 
         LayoutInflater inflater = LayoutInflater.from(context);
         View cv = inflater.inflate(R.layout.content_main, null);
@@ -133,6 +137,17 @@ public class MainActivity extends AppCompatActivity
                     if (!MainActivity.this.hasToken){
                         SpotifyAPI.authSpotify(MainActivity.this);
                     }
+
+                    if (!rhloaded){
+                        rh = new RequestHandler();
+                        rh.teste();
+                        Log.d("rhtest",rh.teste());
+                        rhloaded = true;
+
+                    }
+
+                    rh.setRequestHandlerListener(MainActivity.this);
+
 //
 
                 } else {
@@ -393,6 +408,30 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onEvent() {
+//        Snackbar.make(findViewById(R.id.progressBar2), "Existe uma solicitaçao para sincronizar", Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show();
+        Log.d("EVENTHANDLER", "Event fired");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (!isFinishing()) {
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setTitle("Your Alert")
+                            .setMessage("Your Message")
+                            .setCancelable(false)
+                            .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Whatever...
+                                }
+                            }).show();
+                }
+            }
+        });
+    }
 
 
 //    @Override

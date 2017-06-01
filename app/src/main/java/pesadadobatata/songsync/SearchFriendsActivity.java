@@ -4,16 +4,16 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
+
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
+
 import android.widget.GridView;
 
-import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.auth.FirebaseAuth;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -29,7 +29,7 @@ import java.util.List;
 
 
 
-public class SearchFriendsActivity extends AppCompatActivity {
+public class SearchFriendsActivity extends AppCompatActivity{
     private DatabaseReference mDatabase;
     private HashMap[] eita;
     private List<User> userNames;
@@ -43,6 +43,7 @@ public class SearchFriendsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_searchfriends);
         list = (GridView) findViewById(R.id.friendsResultList);
+        RequestHandler rh = RequestHandler.getInstance();
 
         final android.widget.SearchView searchView = (android.widget.SearchView) findViewById(R.id.friendsearch_view);
         searchView.setOnQueryTextListener(new android.widget.SearchView.OnQueryTextListener() {
@@ -61,7 +62,6 @@ public class SearchFriendsActivity extends AppCompatActivity {
                             String username = (String) messageSnapshot.child("username").getValue();
                             userNames.add(new User(uid, username));
                         }
-                        Log.d("name", userNames.toString());
                         showUsers();
                     }
 
@@ -123,9 +123,12 @@ public class SearchFriendsActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Snackbar.make(view, "Solicitando sincronização com " + userNames.get(position).getUsername(), Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+                DatabaseReference requestRef = mDatabase.child(userNames.get(position).getUid()+"/requests");
+                requestRef.push().setValue(FirebaseAuth.getInstance().getCurrentUser().getUid());
             }
         });
     }
+
 
 }
 

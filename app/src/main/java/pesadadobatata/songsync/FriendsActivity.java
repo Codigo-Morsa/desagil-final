@@ -44,7 +44,7 @@ import com.google.firebase.database.DataSnapshot;
 import samplesearch.SearchActivity;
 
 
-public class FriendsActivity extends AppCompatActivity {
+public class FriendsActivity extends AppCompatActivity implements RequestHandlerListener{
     private DatabaseReference mDatabase;
     private HashMap[] eita;
     private List<Friend> userNames;
@@ -56,6 +56,8 @@ public class FriendsActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
         userNames = new LinkedList<>();
         super.onCreate(savedInstanceState);
+        RequestHandler rh = RequestHandler.getInstance();
+        rh.setRequestHandlerListener(this);
 
         setContentView(R.layout.activity_friends);
         list = (GridView) findViewById(R.id.friendsList);
@@ -73,6 +75,7 @@ public class FriendsActivity extends AppCompatActivity {
 //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                        .setAction("Action", null).show();
                 Intent intent = new Intent(FriendsActivity.this,SearchFriendsActivity.class);
+
                 startActivity(intent);
             }
         });
@@ -87,12 +90,12 @@ public class FriendsActivity extends AppCompatActivity {
                 for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
                     String uid =  messageSnapshot.getKey();
                     String userName = (String) messageSnapshot.child("username").getValue();
-                    Log.d("name", uid);
-                    Log.d("message", userName);
+
                     userNames.add(new Friend(uid, userName));
                 }
 
                 showUsers();
+                mDatabase.removeEventListener(this);
 
             }
 
@@ -115,6 +118,11 @@ public class FriendsActivity extends AppCompatActivity {
         list.setAdapter(gridViewArrayAdapter);
     }
 
+    @Override
+    public void onEvent() {
+        Snackbar.make(list,"Existe uma solicitaçao para sincronizar", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
+    }
 }
 
 

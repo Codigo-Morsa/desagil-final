@@ -43,7 +43,6 @@
             android:layout_weight="0.13"
             android:backgroundTint="@color/semiGreen"
             android:hint="Usuário"
-            android:inputType="textCapWords"
             android:textColorHint="@android:color/darker_gray" />
 
         <android.support.design.widget.TextInputLayout

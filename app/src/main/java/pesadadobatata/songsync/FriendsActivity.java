@@ -1,5 +1,7 @@
 package pesadadobatata.songsync;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -39,10 +41,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DataSnapshot;
 
+import samplesearch.SearchActivity;
+
 
 public class FriendsActivity extends AppCompatActivity {
-    private FirebaseAuth.AuthStateListener mAuthListener;
-    private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private HashMap[] eita;
     private List<Friend> userNames;
@@ -51,7 +53,6 @@ public class FriendsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
         userNames = new LinkedList<>();
         super.onCreate(savedInstanceState);
@@ -69,12 +70,14 @@ public class FriendsActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+                Intent intent = new Intent(FriendsActivity.this,SearchFriendsActivity.class);
+                startActivity(intent);
             }
         });
 
-        final ValueEventListener valueEventListener = mDatabase.addValueEventListener(new ValueEventListener() {
+        mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -82,8 +85,8 @@ public class FriendsActivity extends AppCompatActivity {
                 userNames.clear();
 
                 for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
-                    String uid = (String) messageSnapshot.getKey();
-                    String userName = (String) messageSnapshot.child("Username").getValue();
+                    String uid =  messageSnapshot.getKey();
+                    String userName = (String) messageSnapshot.child("username").getValue();
                     Log.d("name", uid);
                     Log.d("message", userName);
                     userNames.add(new Friend(uid, userName));
@@ -113,12 +116,6 @@ public class FriendsActivity extends AppCompatActivity {
     }
 
 }
-
-
-
-
-
-
 
 
 class Friend{

@@ -24,13 +24,17 @@
         <activity android:name=".LoginActivity" />
         <activity android:name=".SignupActivity" />
         <activity
+            android:name=".SearchFriendsActivity"
+            android:windowSoftInputMode="adjustPan"
+            android:isScrollContainer="false"/>
+        <activity
             android:name="com.spotify.sdk.android.authentication.LoginActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity android:name="samplesearch.SearchActivity" />
         <activity
             android:name=".FriendsActivity"
             android:label="@string/title_activity_friends"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

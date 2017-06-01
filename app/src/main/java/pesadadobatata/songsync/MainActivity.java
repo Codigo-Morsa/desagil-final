@@ -366,7 +366,7 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         Log.d("ACTIVITY","Returned to MainActivity");
          //Check if result comes from the correct activity
-        if (requestCode == REQUEST_CODE && this.hasToken == false) {
+        if (requestCode == REQUEST_CODE && !this.hasToken) {
             super.onActivityResult(requestCode, resultCode, intent);
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
             if (response.getType() == AuthenticationResponse.Type.TOKEN) {

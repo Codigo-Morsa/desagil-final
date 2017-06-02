@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity
     private ImageView thumbnail;
     private Button playButton;
     private Button pauseButton;
+    private Button resumeButton;
     private DatabaseReference mDatabase;
 
 
@@ -102,9 +103,11 @@ public class MainActivity extends AppCompatActivity
         final ImageButton fb = (ImageButton) findViewById(R.id.friendsButton);
         final ImageButton sb = (ImageButton) findViewById(R.id.searchButton2);
 //        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
+
         thumbnail = (ImageView) findViewById(R.id.thumbnailView);
         playButton = (Button) findViewById(R.id.playButton);
         pauseButton = (Button) findViewById(R.id.pauseButton);
+        resumeButton = (Button) findViewById(R.id.resumeButton);
 
         Context context = getApplicationContext();
 
@@ -322,6 +325,13 @@ public class MainActivity extends AppCompatActivity
     public void pauseSong(View view){
         mPlayer.pause(null);
         pauseButton.setVisibility(View.GONE);
+        resumeButton.setVisibility(View.VISIBLE);
+    }
+
+    public void resumeSong(View view){
+        mPlayer.resume(null);
+        pauseButton.setVisibility(View.VISIBLE);
+        resumeButton.setVisibility(View.GONE);
     }
 
 

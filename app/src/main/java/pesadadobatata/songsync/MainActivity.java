@@ -22,6 +22,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.google.common.net.InternetDomainName;
@@ -33,6 +34,8 @@ import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Error;
+import com.spotify.sdk.android.player.Metadata;
+import com.spotify.sdk.android.player.PlaybackState;
 import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlayerEvent;
 import com.spotify.sdk.android.player.Spotify;
@@ -88,6 +91,9 @@ public class MainActivity extends AppCompatActivity
     private Button playButton;
     private Button pauseButton;
     private Button resumeButton;
+    private SeekBar musicProgress;
+    private TextView musicTimeRight;
+    private TextView musicTimeLeft;
     private DatabaseReference mDatabase;
 
 
@@ -108,6 +114,9 @@ public class MainActivity extends AppCompatActivity
         playButton = (Button) findViewById(R.id.playButton);
         pauseButton = (Button) findViewById(R.id.pauseButton);
         resumeButton = (Button) findViewById(R.id.resumeButton);
+        musicProgress = (SeekBar) findViewById(R.id.musicProgress);
+        musicTimeRight = (TextView) findViewById(R.id.musicTimeRight);
+        musicTimeLeft = (TextView) findViewById(R.id.musicTimeLeft);
 
         Context context = getApplicationContext();
 
@@ -302,8 +311,8 @@ public class MainActivity extends AppCompatActivity
             mAuth.addAuthStateListener(mAuthListener);
         }
         if (!Objects.equals(SpotifyAPI.getUri(), "")){
-            //playSong();
             drawSongThumbnail();
+            playerSetup();
         }
     }
 
@@ -320,12 +329,42 @@ public class MainActivity extends AppCompatActivity
         playButton.setVisibility(View.GONE);
         pauseButton.setVisibility(View.VISIBLE);
 
+        try {
+            Thread.sleep(1000);
+        }catch (InterruptedException e){
+        }
+
+        Metadata metadata = mPlayer.getMetadata();
+        Metadata.Track musica = metadata.currentTrack;
+        Log.d("METADATA", metadata.toString());
+
+        /*
+        PlaybackState pbstate = mPlayer.getPlaybackState();
+        Log.d("METADATA", pbstate.toString());
+        */
+        long durMS = musica.durationMs;
+        long secLong = durMS/1000;
+        int sec = (int) secLong;
+        int min = sec/60;
+        sec = sec % 60;
+        String segundos = Integer.toString(sec);
+        if(sec<10){
+            segundos = "0"+segundos;
+        }
+        String duration = min + ":" + segundos;
+        musicTimeRight.setText(duration);
+
     }
 
     public void pauseSong(View view){
         mPlayer.pause(null);
         pauseButton.setVisibility(View.GONE);
         resumeButton.setVisibility(View.VISIBLE);
+
+        /*Metadata metadata = mPlayer.getMetadata();
+        Metadata.Track musica = metadata.currentTrack;
+        Log.d("METADATA", metadata.toString());*/
+
     }
 
     public void resumeSong(View view){
@@ -334,11 +373,23 @@ public class MainActivity extends AppCompatActivity
         resumeButton.setVisibility(View.GONE);
     }
 
+    public void playerSetup(){
+        pauseButton.setVisibility(View.GONE);
+        resumeButton.setVisibility(View.GONE);
+        playButton.setVisibility(View.VISIBLE);
+        musicProgress.setVisibility(View.VISIBLE);
+        musicTimeRight.setVisibility(View.VISIBLE);
+        musicTimeLeft.setVisibility(View.VISIBLE);
+
+
+
+
+    }
 
     public void drawSongThumbnail(){
         thumbnail.setVisibility(View.VISIBLE);
-        playButton.setVisibility(View.VISIBLE);
         Picasso.with(context).load(SpotifyAPI.getThumbnailUrl()).into(thumbnail);
+
     }
 
     @Override
@@ -377,6 +428,8 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
     }
+
+
 
     @Override
     public void onPlaybackError(Error error) {

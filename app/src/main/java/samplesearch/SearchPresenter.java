@@ -116,6 +116,8 @@ public class SearchPresenter implements Search.ActionListener {
     public void selectTrack(Track item) {
         String previewUrl = item.uri;
         String imageUrl = item.album.images.get(0).url;
+        long duration = item.duration_ms;
+        SpotifyAPI.setSongDuration(duration);
         SpotifyAPI.setUri(previewUrl);
         SpotifyAPI.setThumbnailUrl(imageUrl);
     }

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -95,6 +96,7 @@ public class MainActivity extends AppCompatActivity
     private TextView musicTimeRight;
     private TextView musicTimeLeft;
     private DatabaseReference mDatabase;
+    private Thread thread;
 
 
     @Override
@@ -324,42 +326,39 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private Handler mHandler = new Handler();
+
     public void playSong(View view){
         mPlayer.playUri(null, SpotifyAPI.getUri(),0,0);
         playButton.setVisibility(View.GONE);
         pauseButton.setVisibility(View.VISIBLE);
 
-        try {
-            Thread.sleep(1000);
-        }catch (InterruptedException e){
-        }
+       thread =  new Thread(new Runnable() {
+            public void run() {
+                while (mPlayer.getPlaybackState().positionMs < SpotifyAPI.getSongDuration()) {
 
-        Metadata metadata = mPlayer.getMetadata();
-        Metadata.Track musica = metadata.currentTrack;
-        Log.d("METADATA", metadata.toString());
 
-        /*
-        PlaybackState pbstate = mPlayer.getPlaybackState();
-        Log.d("METADATA", pbstate.toString());
-        */
-        long durMS = musica.durationMs;
-        long secLong = durMS/1000;
-        int sec = (int) secLong;
-        int min = sec/60;
-        sec = sec % 60;
-        String segundos = Integer.toString(sec);
-        if(sec<10){
-            segundos = "0"+segundos;
-        }
-        String duration = min + ":" + segundos;
-        musicTimeRight.setText(duration);
 
+                    // Update the progress bar
+                    mHandler.post(new Runnable() {
+                        public void run() {
+//                            mProgress.setProgress(mProgressStatus);
+                            musicTimeLeft.setText(transformTime(mPlayer.getPlaybackState().positionMs));
+                            long tillFinish = SpotifyAPI.getSongDuration() - mPlayer.getPlaybackState().positionMs;
+                            musicTimeRight.setText(transformTime(tillFinish));
+                        }
+                    });
+                }
+            }
+       });
+       thread.start();
     }
 
     public void pauseSong(View view){
         mPlayer.pause(null);
         pauseButton.setVisibility(View.GONE);
         resumeButton.setVisibility(View.VISIBLE);
+
 
         /*Metadata metadata = mPlayer.getMetadata();
         Metadata.Track musica = metadata.currentTrack;
@@ -381,9 +380,28 @@ public class MainActivity extends AppCompatActivity
         musicTimeRight.setVisibility(View.VISIBLE);
         musicTimeLeft.setVisibility(View.VISIBLE);
 
+        if(thread != null){
+            //thread.interrupt();
+            thread.destroy();
+        }
+
+        musicTimeRight.setText(transformTime(SpotifyAPI.getSongDuration()));
+        musicTimeLeft.setText("0:00");
 
 
+    }
 
+    public String transformTime(long durMS){
+        long secLong = durMS/1000;
+        int sec = (int) secLong;
+        int min = sec/60;
+        sec = sec % 60;
+        String segundos = Integer.toString(sec);
+        if(sec<10){
+            segundos = "0"+segundos;
+        }
+        String duration = min + ":" + segundos;
+        return duration;
     }
 
     public void drawSongThumbnail(){

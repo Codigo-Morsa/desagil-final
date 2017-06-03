@@ -1,6 +1,7 @@
 package pesadadobatata.songsync;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -12,8 +13,11 @@ import android.widget.ArrayAdapter;
 
 import android.widget.GridView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,15 +30,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 
-
-public class SearchFriendsActivity extends AppCompatActivity{
+public class SearchFriendsActivity extends AppCompatActivity implements RequestHandlerListener{
     private DatabaseReference mDatabase;
     private HashMap[] eita;
     private List<User> userNames;
     private String[] usernamesArray;
     private GridView list;
+    private RequestHandler rh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +48,8 @@ public class SearchFriendsActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_searchfriends);
         list = (GridView) findViewById(R.id.friendsResultList);
-        RequestHandler rh = RequestHandler.getInstance();
+        rh = RequestHandler.getInstance();
+        rh.setRequestHandlerListener(this);
 
         final android.widget.SearchView searchView = (android.widget.SearchView) findViewById(R.id.friendsearch_view);
         searchView.setOnQueryTextListener(new android.widget.SearchView.OnQueryTextListener() {
@@ -110,21 +116,68 @@ public class SearchFriendsActivity extends AppCompatActivity{
 //        });
     }
 
+    @Override
+    protected void onResume() {
+        rh.setRequestHandlerListener(SearchFriendsActivity.this);
+        super.onResume();
+    }
+
     public void showUsers(){
         usernamesArray = new String[userNames.size()];
         for (int i=0;i<usernamesArray.length;i++){
             usernamesArray[i] = userNames.get(i).getUsername();
         }
         final List<String> alo = new ArrayList<String>(Arrays.asList(usernamesArray));
-        final ArrayAdapter<String> gridViewArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, alo);
+        final ArrayAdapter<String> gridViewArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, alo);
+
         list.setAdapter(gridViewArrayAdapter);
+
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Snackbar.make(view, "Solicitando sincronização com " + userNames.get(position).getUsername(), Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-                DatabaseReference requestRef = mDatabase.child(userNames.get(position).getUid()+"/requests");
-                requestRef.push().setValue(FirebaseAuth.getInstance().getCurrentUser().getUid());
+            public void onItemClick(AdapterView<?> parent, final View view, final int position, long id) {
+                rh.checkAvaiability(userNames.get(position).getUid()).addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (view.isEnabled()) {
+                            if (Objects.equals(task.getResult(), "online")) {
+                                rh.sendRequest(userNames.get(position).getUid());
+                                Snackbar.make(view, "Solicitando sincronização com " + userNames.get(position).getUsername(), Snackbar.LENGTH_LONG)
+                                        .setAction("Action", null).show();
+                                view.setEnabled(false);
+                                view.setClickable(false);
+                                view.setFocusable(false);
+
+                            } else {
+                                Snackbar.make(view, "O usuário " + userNames.get(position).getUsername() + " parece estar offline", Snackbar.LENGTH_LONG)
+                                        .setAction("Action", null).show();
+                            }
+                        }
+                    }
+                });
+//                Snackbar.make(view, "Solicitando sincronização com " + userNames.get(position).getUsername(), Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+            }
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d("BUTTON","finishing SearchFriends");
+        finish();
+    }
+
+    @Override
+    public void onEvent() {
+//        Snackbar.make(findViewById(R.id.progressBar2), "Existe uma solicitaçao para sincronizar", Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show();
+        Log.d("EVENTHANDLER", "Event fired on SearchFriendsActivity");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (!isFinishing()) {
+                    rh.showRequestAlert(SearchFriendsActivity.this);
+                }
             }
         });
     }

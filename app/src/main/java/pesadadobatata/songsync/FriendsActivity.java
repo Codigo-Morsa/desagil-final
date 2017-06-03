@@ -41,8 +41,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DataSnapshot;
 
-import samplesearch.SearchActivity;
-
 
 public class FriendsActivity extends AppCompatActivity implements RequestHandlerListener{
     private DatabaseReference mDatabase;
@@ -50,22 +48,21 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
     private List<Friend> userNames;
     private String[] usernamesArray;
     private GridView list;
+    private RequestHandler rh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
         userNames = new LinkedList<>();
         super.onCreate(savedInstanceState);
-        RequestHandler rh = RequestHandler.getInstance();
-        rh.setRequestHandlerListener(this);
+
+        rh = RequestHandler.getInstance();
+        rh.setRequestHandlerListener(FriendsActivity.this);
 
         setContentView(R.layout.activity_friends);
         list = (GridView) findViewById(R.id.friendsList);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        final List<String> emptylist = new ArrayList<String>();
-        final ArrayAdapter<String> emptygridViewArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, emptylist);
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -118,10 +115,27 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
         list.setAdapter(gridViewArrayAdapter);
     }
 
+    public void onStart() {
+        super.onStart();
+        Log.d("ACTIVITY","Returned to FriendsActivity via onStart");
+        rh = RequestHandler.getInstance();
+        rh.setRequestHandlerListener(FriendsActivity.this);
+    }
+
     @Override
     public void onEvent() {
-        Snackbar.make(list,"Existe uma solicitaçao para sincronizar", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
+//        Snackbar.make(findViewById(R.id.progressBar2), "Existe uma solicitaçao para sincronizar", Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show();
+        Log.d("EVENTHANDLER", "Event fired on activity FriendsActivity");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (!isFinishing()) {
+                    rh.showRequestAlert(FriendsActivity.this);
+                }
+            }
+        });
     }
 }
 

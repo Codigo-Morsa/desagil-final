@@ -19,6 +19,8 @@ import android.support.annotation.NonNull;
 import com.google.firebase.auth.AuthResult;
 
 import java.util.HashMap;
+
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -79,7 +81,7 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
         progressDialog.setMessage("Creating Account...");
         progressDialog.show();
 
-        String name = _nameText.getText().toString();
+        final String name = _nameText.getText().toString();
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
 
@@ -97,6 +99,11 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
                             Toast.makeText(SignupActivity.this, "Usuário criado com sucesso",
                                     Toast.LENGTH_SHORT).show();
                             onSignupSuccess(task.getResult().getUser().getUid());
+                            UserProfileChangeRequest addDisplayName = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(name)
+                                    .build();
+
+                            task.getResult().getUser().updateProfile(addDisplayName);
                         }
                     }
                 });
@@ -120,12 +127,12 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
         Log.d("NEWLY CREATED USER:", String.valueOf(uid));
         finish();
     }
+
     private void writeNewUser(String userId, String name) {
         HashMap<String, String> user = new HashMap<>();
         user.put("username", name);
         HashMap<String, String> username = new HashMap<>();
         username.put("uid", userId);
-
         mDatabase.child("users").child(userId).setValue(user);
         mDatabase.child("usernames").child(name.toLowerCase()).setValue(username);
     }
@@ -134,6 +141,7 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
         Toast.makeText(getBaseContext(), "Falha ao criar usuário, esse email ja pode estar sendo usado", Toast.LENGTH_LONG).show();
         _signupButton.setEnabled(true);
     }
+
 
     public boolean validate() {
         boolean valid = true;

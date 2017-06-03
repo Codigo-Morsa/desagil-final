@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity
                 if (user != null) {
                     // User is signed in
                     userState = true;
-                    Log.d("kk", "onAuthStateChanged:signed_in:" + user.getUid());
+                    Log.d("kk", "onAuthStateChanged:signed_in:" + user.getUid() + " username: " + user.getDisplayName());
                     pb.setVisibility(View.GONE);
                     loginbutton.setVisibility(View.GONE);
                     signinbutton.setVisibility(View.GONE);
@@ -143,7 +143,6 @@ public class MainActivity extends AppCompatActivity
                         rh.teste();
                         Log.d("rhtest",rh.teste());
                         rhloaded = true;
-
                     }
 
                     rh.setRequestHandlerListener(MainActivity.this);
@@ -153,6 +152,8 @@ public class MainActivity extends AppCompatActivity
                 } else {
                     // User is signed out
                     userState = false;
+                    rh = null;
+                    rhloaded = false;
                     Log.d("kk", "onAuthStateChanged:signed_out");
                     pb.setVisibility(View.GONE);
                     loginbutton.setVisibility(View.VISIBLE);
@@ -305,6 +306,10 @@ public class MainActivity extends AppCompatActivity
     public void onStart() {
         super.onStart();
         Log.d("ACTIVITY","Returned to MainActivity via onStart");
+        if (rh != null){
+            rh.setStatus("online");
+        }
+
         if (mAuthListener != null){
             mAuth.addAuthStateListener(mAuthListener);
         }
@@ -334,6 +339,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLoggedIn() {
         Log.d("MainActivity", "User logged in");
+        rh.setStatus("online");
 //        mPlayer.playUri(null, "spotify:track:4tNaC9xdo65pgl1QAaygA4", 0, 0);
     }
 
@@ -379,6 +385,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        rh.setStatus("online");
         Log.d("ACTIVITY","Returned to MainActivity");
          //Check if result comes from the correct activity
         if (requestCode == REQUEST_CODE && !this.hasToken) {
@@ -412,29 +419,29 @@ public class MainActivity extends AppCompatActivity
     public void onEvent() {
 //        Snackbar.make(findViewById(R.id.progressBar2), "Existe uma solicitaçao para sincronizar", Snackbar.LENGTH_LONG)
 //                .setAction("Action", null).show();
-        Log.d("EVENTHANDLER", "Event fired");
+        Log.d("EVENTHANDLER", "Event fired on MainActivity");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
 
                 if (!isFinishing()) {
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setTitle("Your Alert")
-                            .setMessage("Your Message")
-                            .setCancelable(false)
-                            .setPositiveButton("ok", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // Whatever...
-                                }
-                            }).show();
+                    rh.showRequestAlert(MainActivity.this);
                 }
             }
         });
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (rhloaded){
+            rh.clearRequests();
+        }
+        Log.d("REQUEST_HANDLER","Clearing requests from server");
+        }
 
-//    @Override
+
+    //    @Override
 //    public Dialog onCreateDialog(Bundle savedInstanceState) {
 //        AlertDialog.Builder builder = new AlertDialog.Builder(this);
 //        // Get the layout inflater

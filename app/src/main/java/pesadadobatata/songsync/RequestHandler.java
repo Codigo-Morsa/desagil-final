@@ -5,11 +5,14 @@ import android.app.AlertDialog;
 import android.app.Application;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.constraint.solver.widgets.Snapshot;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
@@ -54,19 +57,19 @@ class RequestHandler{
         statusRef = FirebaseDatabase.getInstance().getReference().child("users/" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "/status");
         requestsList = new LinkedList<>();
         DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("users/" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "/requests");
-        Query childQuery = mDatabase.orderByKey().limitToLast(1);
+//        Query childQuery = mDatabase.orderByKey().limitToLast(1);
         setStatus("online");
         mDatabase.removeValue();
 
-        childQuery.addChildEventListener(new ChildEventListener() {
+        mDatabase.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Log.d("REQUEST_HANDLER", "New request");
-                for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
-                    String uid = messageSnapshot.getKey();
-                    Log.d("REQUEST_RECIEVER",uid);
-//                        mDatabase.updateChildren(Map<String, Object>);
-                }
+                Log.d("REQUEST_HANDLER", "New request recieved from " + dataSnapshot.child("username").getValue(String.class));
+//                for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
+//                    String uid = messageSnapshot.getKey();
+//                    Log.d("REQUEST_RECIEVER",uid);
+////                        mDatabase.updateChildren(Map<String, Object>);
+//                }
                 lastrequest = dataSnapshot;
                 rhl.onEvent();
 //                dataSnapshot.getRef().removeValue();
@@ -112,8 +115,35 @@ class RequestHandler{
         statusRef.setValue(status);
     }
 
+    public void connect(String syncid){
+        final DatabaseReference connectionRef = FirebaseDatabase.getInstance().getReference().child("connections").child(syncid);
+        Log.d("CONNECT","Trying to connect to " + connectionRef.getKey());
+        final HashMap<String,String> client = new HashMap<>();
+        client.put("uid",FirebaseAuth.getInstance().getCurrentUser().getUid());
+        client.put("username",FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+        connectionRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    Log.d("DATA_CHANGED",ds.getKey());
+                    if (Objects.equals(ds.getKey(), "host")){
+                        Log.d("CONNECT","Host is connected, connecting client");
+                        connectionRef.child("client").setValue(client);
+                        new ConnectionHandler(connectionRef.getKey());
+                        connectionRef.removeEventListener(this);
+                        rhl.onConnectionHandlerCreated();
+                    }
+                }
+            }
 
-    public void showRequestAlert(Activity activity){
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void showRequestAlert(final Activity activity){
         // Shows a new request dialog whichever activity the user is
         final String syncid = this.lastrequest.getKey();
         String syncrequester = this.lastrequest.child("username").getValue(String.class);
@@ -127,6 +157,9 @@ class RequestHandler{
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         requestRef.child("status").setValue("accepted");
+                        connect(syncid);
+                        Intent intent = new Intent(activity,MainActivity.class);
+                        activity.startActivity(intent);
                     }
                 })
                 .setNegativeButton("Recusar", new DialogInterface.OnClickListener(){
@@ -163,15 +196,16 @@ class RequestHandler{
     }
 
 
-    public void sendRequest(final String destinationuid) {
+    public void sendRequest(final String destinationUid, final String destinationUsername) {
         // Deals with sent requests and its response;
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        final FirebaseAuth mAuth = FirebaseAuth.getInstance();
 
-        DatabaseReference requestRef = FirebaseDatabase.getInstance().getReference().child("users/" + destinationuid + "/requests");
+        DatabaseReference requestRef = FirebaseDatabase.getInstance().getReference().child("users/" + destinationUid + "/requests");
 
         final HashMap<String, String> request = new HashMap<>();
         request.put("uid", mAuth.getCurrentUser().getUid());
         request.put("username", mAuth.getCurrentUser().getDisplayName());
+        request.put("destusr", destinationUsername);
         request.put("status", "sent");
 
 
@@ -179,26 +213,30 @@ class RequestHandler{
         String requestKey = requestKeyRef.getKey();
         requestKeyRef.setValue(request);
 
-        Request requestObj = new Request(requestKey, mAuth.getCurrentUser().getUid(), destinationuid);
+        Request requestObj = new Request(requestKey, mAuth.getCurrentUser().getUid(), destinationUid);
         requestsList.push(requestObj);
 
-        Log.d("REQUEST_HANDLER", "New request Key:" + requestKey + " sent to " + destinationuid);
+        Log.d("REQUEST_HANDLER", "New request Key:" + requestKey + " sent to " + destinationUid);
         requestRef.child(requestKey).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String requestKey = dataSnapshot.getKey();
                 String requestStatus = dataSnapshot.child("status").getValue(String.class);
-
                 Log.d("REQUEST_"+requestKey,requestStatus);
 
                 if (Objects.equals(requestStatus, "rejected")){
                     Log.d("REF",dataSnapshot.getRef().toString());
                     dataSnapshot.getRef().removeEventListener(this);
                     dataSnapshot.getRef().removeValue();
+
                 } else if (Objects.equals(requestStatus, "accepted")){
-                    Log.d("REF",dataSnapshot.getRef().toString());
+//                    Log.d("REF",);
+                    openConnection(requestKey,mAuth.getCurrentUser().getUid(),mAuth.getCurrentUser().getDisplayName(),
+                            dataSnapshot.getRef().getParent().getParent().getKey(),dataSnapshot.child("destusr").getValue(String.class));
                     dataSnapshot.getRef().removeEventListener(this);
                     dataSnapshot.getRef().removeValue();
+                    rhl.onRequestAccepted();
+                    new ConnectionHandler(requestKey);
                 }
 
 
@@ -264,9 +302,19 @@ class RequestHandler{
     }
 
     public void openConnection(String ckey,String hostid, String hostusr, String clientid, String clientusr){
-        Log.d("Params",ckey);
-        DatabaseReference connectionRef = FirebaseDatabase.getInstance().getReference().getRoot().child("connections");
+        Log.d("Params",ckey + hostid + hostusr + clientid + clientusr);
+        DatabaseReference connectionRef = FirebaseDatabase.getInstance().getReference().getRoot().child("connections").child(ckey);
+        HashMap<String,String> host = new HashMap<>();
+        host.put("username",hostusr);
+        host.put("uid",hostid);
+        connectionRef.child("host").setValue(host);
 //        connectionRef.setValue();
+    }
+
+    public void destroyRequestHandler(){
+        Log.d("REQUEST_HANDLER","Request Handler has been destroyed") ;
+        rh = null;
+
     }
 
 

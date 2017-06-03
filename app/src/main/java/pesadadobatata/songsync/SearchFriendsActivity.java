@@ -1,7 +1,9 @@
 package pesadadobatata.songsync;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -50,6 +52,7 @@ public class SearchFriendsActivity extends AppCompatActivity implements RequestH
         list = (GridView) findViewById(R.id.friendsResultList);
         rh = RequestHandler.getInstance();
         rh.setRequestHandlerListener(this);
+        rh.setStatus("online");
 
         final android.widget.SearchView searchView = (android.widget.SearchView) findViewById(R.id.friendsearch_view);
         searchView.setOnQueryTextListener(new android.widget.SearchView.OnQueryTextListener() {
@@ -119,6 +122,7 @@ public class SearchFriendsActivity extends AppCompatActivity implements RequestH
     @Override
     protected void onResume() {
         rh.setRequestHandlerListener(SearchFriendsActivity.this);
+        rh.setStatus("online");
         super.onResume();
     }
 
@@ -140,7 +144,7 @@ public class SearchFriendsActivity extends AppCompatActivity implements RequestH
                     public void onComplete(@NonNull Task<String> task) {
                         if (view.isEnabled()) {
                             if (Objects.equals(task.getResult(), "online")) {
-                                rh.sendRequest(userNames.get(position).getUid());
+                                rh.sendRequest(userNames.get(position).getUid(),userNames.get(position).getUsername());
                                 Snackbar.make(view, "Solicitando sincronização com " + userNames.get(position).getUsername(), Snackbar.LENGTH_LONG)
                                         .setAction("Action", null).show();
                                 view.setEnabled(false);
@@ -182,7 +186,30 @@ public class SearchFriendsActivity extends AppCompatActivity implements RequestH
         });
     }
 
+    @Override
+    public void onRequestAccepted() {
+        Snackbar.make(list, "Seu pedido de sincronização foi aceito!", Snackbar.LENGTH_LONG)
+                .setAction("Action", null)
+                .addCallback(new BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                    @Override
+                    public void onDismissed(Snackbar transientBottomBar, int event) {
+                        Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                        startActivity(intent);
+                        super.onDismissed(transientBottomBar, event);
+                    }
+                }).show();
+    }
 
+    @Override
+    public void onConnectionHandlerCreated() {
+
+    }
+
+    @Override
+    protected void onPause() {
+        rh.setStatus("offline");
+        super.onPause();
+    }
 }
 
 class User{

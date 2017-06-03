@@ -5,4 +5,6 @@ package pesadadobatata.songsync;
  */
 public interface RequestHandlerListener{
     void onEvent();
+    void onRequestAccepted();
+    void onConnectionHandlerCreated();
 }

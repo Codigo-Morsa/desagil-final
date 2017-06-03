@@ -3,6 +3,7 @@ package pesadadobatata.songsync;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -58,6 +59,7 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
 
         rh = RequestHandler.getInstance();
         rh.setRequestHandlerListener(FriendsActivity.this);
+        rh.setStatus("online");
 
         setContentView(R.layout.activity_friends);
         list = (GridView) findViewById(R.id.friendsList);
@@ -72,7 +74,6 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
 //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                        .setAction("Action", null).show();
                 Intent intent = new Intent(FriendsActivity.this,SearchFriendsActivity.class);
-
                 startActivity(intent);
             }
         });
@@ -120,6 +121,7 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
         Log.d("ACTIVITY","Returned to FriendsActivity via onStart");
         rh = RequestHandler.getInstance();
         rh.setRequestHandlerListener(FriendsActivity.this);
+        rh.setStatus("online");
     }
 
     @Override
@@ -130,13 +132,36 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-
-                if (!isFinishing()) {
-                    rh.showRequestAlert(FriendsActivity.this);
+                rh.showRequestAlert(FriendsActivity.this);
                 }
-            }
-        });
+            });
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        rh.setStatus("offline");
+    }
+
+    @Override
+    public void onRequestAccepted() {
+        Snackbar.make(list, "Seu pedido de sincronização foi aceito!", Snackbar.LENGTH_LONG)
+                .setAction("Action", null)
+                .addCallback(new BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                    @Override
+                    public void onDismissed(Snackbar transientBottomBar, int event) {
+                        Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                        startActivity(intent);
+                        super.onDismissed(transientBottomBar, event);
+                    }
+                }).show();
+    }
+
+    @Override
+    public void onConnectionHandlerCreated() {
+
+    }
+
 }
 
 

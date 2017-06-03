@@ -3,8 +3,10 @@ package pesadadobatata.songsync;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.RequiresApi;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -97,6 +99,7 @@ public class MainActivity extends AppCompatActivity
     private TextView musicTimeLeft;
     private DatabaseReference mDatabase;
     private Thread thread;
+    private int flag;
 
 
     @Override
@@ -313,6 +316,7 @@ public class MainActivity extends AppCompatActivity
             mAuth.addAuthStateListener(mAuthListener);
         }
         if (!Objects.equals(SpotifyAPI.getUri(), "")){
+            flag = 0;
             drawSongThumbnail();
             playerSetup();
         }
@@ -332,20 +336,34 @@ public class MainActivity extends AppCompatActivity
         mPlayer.playUri(null, SpotifyAPI.getUri(),0,0);
         playButton.setVisibility(View.GONE);
         pauseButton.setVisibility(View.VISIBLE);
+        flag = 1;
+
+
+
 
        thread =  new Thread(new Runnable() {
             public void run() {
-                while (mPlayer.getPlaybackState().positionMs < SpotifyAPI.getSongDuration()) {
+
+                while (mPlayer.getPlaybackState().positionMs < SpotifyAPI.getSongDuration() && flag==1) {
 
 
 
                     // Update the progress bar
                     mHandler.post(new Runnable() {
+                        @RequiresApi(api = Build.VERSION_CODES.N)
                         public void run() {
 //                            mProgress.setProgress(mProgressStatus);
                             musicTimeLeft.setText(transformTime(mPlayer.getPlaybackState().positionMs));
                             long tillFinish = SpotifyAPI.getSongDuration() - mPlayer.getPlaybackState().positionMs;
                             musicTimeRight.setText(transformTime(tillFinish));
+
+                            long pos = mPlayer.getPlaybackState().positionMs;
+                            long total = SpotifyAPI.getSongDuration();
+                            long percent = pos*1000/total;
+                            int per = (int) percent;
+                            musicProgress.setProgress(per, true);
+
+
                         }
                     });
                 }
@@ -373,6 +391,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void playerSetup(){
+
+        playSong(null);
+        pauseSong(null);
+
         pauseButton.setVisibility(View.GONE);
         resumeButton.setVisibility(View.GONE);
         playButton.setVisibility(View.VISIBLE);
@@ -381,8 +403,7 @@ public class MainActivity extends AppCompatActivity
         musicTimeLeft.setVisibility(View.VISIBLE);
 
         if(thread != null){
-            //thread.interrupt();
-            thread.destroy();
+            thread.interrupt();
         }
 
         musicTimeRight.setText(transformTime(SpotifyAPI.getSongDuration()));

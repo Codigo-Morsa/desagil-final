@@ -19,6 +19,8 @@ import android.support.annotation.NonNull;
 import com.google.firebase.auth.AuthResult;
 
 import java.util.HashMap;
+
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -33,7 +35,6 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
-
 
 
     @Override
@@ -80,7 +81,7 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
         progressDialog.setMessage("Creating Account...");
         progressDialog.show();
 
-        String name = _nameText.getText().toString();
+        final String name = _nameText.getText().toString();
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
 
@@ -88,53 +89,59 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
+                        progressDialog.dismiss();
                         Log.d(TAG, "createUserWithEmail:onComplete:" + task.isSuccessful());
 
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
                         if (!task.isSuccessful()) {
                             Log.d("kk", "onComplete: Failed=" + task.getException().getMessage());
                             onSignupFailed();
                         } else {
-                            Toast.makeText(SignupActivity.this, "Registration successful",
+                            Toast.makeText(SignupActivity.this, "Usuário criado com sucesso",
                                     Toast.LENGTH_SHORT).show();
-                            onSignupSuccess();
+                            onSignupSuccess(task.getResult().getUser().getUid());
+                            UserProfileChangeRequest addDisplayName = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(name)
+                                    .build();
+
+                            task.getResult().getUser().updateProfile(addDisplayName);
                         }
                     }
                 });
 
 
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-                        // On complete call either onSignupSuccess or onSignupFailed
-                        // depending on success
-                        onSignupSuccess();
-                        // onSignupFailed();
-                        progressDialog.dismiss();
-                    }
-                }, 3000);
+//        new android.os.Handler().postDelayed(
+//                new Runnable() {
+//                    public void run() {
+//                        // On complete call either onSignupSuccess or onSignupFailed
+//                        // depending on success
+//                        onSignupSuccess();
+//                        // onSignupFailed();
+//                    }
+//                }, 6000);
     }
 
-
-    public void onSignupSuccess() {
+    public void onSignupSuccess(String uid) {
         _signupButton.setEnabled(true);
         setResult(RESULT_OK, null);
-        writeNewUser(mAuth.getCurrentUser().getUid(), _nameText.getText().toString());
-        Log.d("Alo", String.valueOf(mAuth.getCurrentUser().getUid()));
+        writeNewUser(uid, _nameText.getText().toString());
+        Log.d("NEWLY CREATED USER:", String.valueOf(uid));
         finish();
     }
+
     private void writeNewUser(String userId, String name) {
         HashMap<String, String> user = new HashMap<>();
-        user.put("Username", name);
+        user.put("username", name);
+        HashMap<String, String> username = new HashMap<>();
+        username.put("uid", userId);
         mDatabase.child("users").child(userId).setValue(user);
+        mDatabase.child("usernames").child(name.toLowerCase()).setValue(username);
     }
 
     public void onSignupFailed() {
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
+        Toast.makeText(getBaseContext(), "Falha ao criar usuário, esse email ja pode estar sendo usado", Toast.LENGTH_LONG).show();
         _signupButton.setEnabled(true);
     }
+
 
     public boolean validate() {
         boolean valid = true;
@@ -143,22 +150,30 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
 
-        if (name.isEmpty() || name.length() < 3) {
-            _nameText.setError("at least 3 characters");
+        if (name.isEmpty() || name.length() < 5) {
+            _nameText.setError("Pelo menos 5 caracteres");
             valid = false;
         } else {
             _nameText.setError(null);
         }
 
+        String upper = name.toUpperCase();
+        for (int i = 0; i< name.length() ; i++){
+            if (!Character.isDigit(name.charAt(i)) && name.charAt(i) == upper.charAt(i)){
+                _nameText.setError("Nome não pode possuir letras maiúsculas");
+                valid = false;
+            }
+        }
+
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("enter a valid email address");
+            _emailText.setError("Digite um email válido");
             valid = false;
         } else {
             _emailText.setError(null);
         }
 
-        if (password.isEmpty() || password.length() < 4 || password.length() > 20) {
-            _passwordText.setError("between 4 and 20 alphanumeric characters");
+        if (password.isEmpty() || password.length() < 6 || password.length() > 25) {
+            _passwordText.setError("Deve possuir de 8 a 25 caracteres");
             valid = false;
         } else {
             _passwordText.setError(null);

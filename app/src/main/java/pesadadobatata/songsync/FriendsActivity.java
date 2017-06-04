@@ -1,6 +1,9 @@
 package pesadadobatata.songsync;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -40,41 +43,47 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DataSnapshot;
 
 
-public class FriendsActivity extends AppCompatActivity {
-    private FirebaseAuth.AuthStateListener mAuthListener;
-    private FirebaseAuth mAuth;
+public class FriendsActivity extends AppCompatActivity implements RequestHandlerListener{
     private DatabaseReference mDatabase;
     private HashMap[] eita;
     private List<Friend> userNames;
     private String[] usernamesArray;
     private GridView list;
+    private RequestHandler rh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
         userNames = new LinkedList<>();
         super.onCreate(savedInstanceState);
+
+        rh = RequestHandler.getInstance();
+        try{
+            rh.setRequestHandlerListener(FriendsActivity.this);
+            rh.setStatus("online");
+        } catch (NullPointerException e){
+            Log.d("Weird","Weird error on FriendActivity");
+        }
+
 
         setContentView(R.layout.activity_friends);
         list = (GridView) findViewById(R.id.friendsList);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final List<String> emptylist = new ArrayList<String>();
-        final ArrayAdapter<String> emptygridViewArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, emptylist);
-
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+                Intent intent = new Intent(FriendsActivity.this,SearchFriendsActivity.class);
+                startActivity(intent);
             }
         });
 
-        final ValueEventListener valueEventListener = mDatabase.addValueEventListener(new ValueEventListener() {
+        mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -82,14 +91,14 @@ public class FriendsActivity extends AppCompatActivity {
                 userNames.clear();
 
                 for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
-                    String uid = (String) messageSnapshot.getKey();
-                    String userName = (String) messageSnapshot.child("Username").getValue();
-                    Log.d("name", uid);
-                    Log.d("message", userName);
+                    String uid =  messageSnapshot.getKey();
+                    String userName = (String) messageSnapshot.child("username").getValue();
+
                     userNames.add(new Friend(uid, userName));
                 }
 
                 showUsers();
+                mDatabase.removeEventListener(this);
 
             }
 
@@ -112,13 +121,53 @@ public class FriendsActivity extends AppCompatActivity {
         list.setAdapter(gridViewArrayAdapter);
     }
 
+    public void onStart() {
+        super.onStart();
+        Log.d("ACTIVITY","Returned to FriendsActivity via onStart");
+        rh = RequestHandler.getInstance();
+        rh.setRequestHandlerListener(FriendsActivity.this);
+        rh.setStatus("online");
+    }
+
+    @Override
+    public void onEvent() {
+//        Snackbar.make(findViewById(R.id.progressBar2), "Existe uma solicitaçao para sincronizar", Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show();
+        Log.d("EVENTHANDLER", "Event fired on activity FriendsActivity");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                rh.showRequestAlert(FriendsActivity.this);
+                }
+            });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        rh.setStatus("offline");
+    }
+
+    @Override
+    public void onRequestAccepted() {
+        Snackbar.make(list, "Seu pedido de sincronização foi aceito!", Snackbar.LENGTH_LONG)
+                .setAction("Action", null)
+                .addCallback(new BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                    @Override
+                    public void onDismissed(Snackbar transientBottomBar, int event) {
+                        Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                        startActivity(intent);
+                        super.onDismissed(transientBottomBar, event);
+                    }
+                }).show();
+    }
+
+    @Override
+    public void onConnectionHandlerCreated() {
+
+    }
+
 }
-
-
-
-
-
-
 
 
 class Friend{

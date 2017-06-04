@@ -13,7 +13,9 @@ import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.models.Track;
+import pesadadobatata.songsync.ConnectionHandlerListener;
 import pesadadobatata.songsync.SpotifyAPI;
+import pesadadobatata.songsync.ConnectionHandler;
 
 public class SearchPresenter implements Search.ActionListener {
 
@@ -114,11 +116,19 @@ public class SearchPresenter implements Search.ActionListener {
 
     @Override
     public void selectTrack(Track item) {
-        String previewUrl = item.uri;
+        ConnectionHandler ch = ConnectionHandler.getInstance();
+        String songUrl = item.uri;
         String imageUrl = item.album.images.get(0).url;
+
         long duration = item.duration_ms;
         SpotifyAPI.setSongDuration(duration);
-        SpotifyAPI.setUri(previewUrl);
+       // SpotifyAPI.setUri(previewUrl);
+
+        SpotifyAPI.setUri(songUrl);
+        if (ch != null){
+            ch.selectSong(songUrl,imageUrl);
+        }
+
         SpotifyAPI.setThumbnailUrl(imageUrl);
     }
 

@@ -28,7 +28,7 @@ import java.lang.reflect.Array;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
+//import java.util.function.Function;
 
 
 /**
@@ -44,6 +44,7 @@ public class SpotifyAPI {
     private static String spotifyToken = "";
     private static String songUri = "";
     private static String songThumbnailUrl = "";
+    private static long songDuration;
     private static SpotifyService spotify;
 
     static SpotifyAPI getInstance() {
@@ -87,6 +88,10 @@ public class SpotifyAPI {
     static public String getSpotifyToken() {
         return spotifyToken;
     }
+
+    static public void setSongDuration(long dur){ songDuration = dur; }
+
+    static public long getSongDuration(){ return songDuration;}
 
     static public void authSpotify(Activity thisactivity) {
         Log.d("SPOTIFYAPI:", "Authenticating Spotify");

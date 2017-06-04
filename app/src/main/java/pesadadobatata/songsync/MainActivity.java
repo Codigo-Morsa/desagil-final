@@ -108,6 +108,10 @@ public class MainActivity extends AppCompatActivity
     private AlarmManager alarmMgr;
     private Intent alarmIntent;
     private PendingIntent pendingIntent;
+    private TextView sideBarUserName;
+    private TextView sideBarEmail;
+    private ImageView pic;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,6 +167,15 @@ public class MainActivity extends AppCompatActivity
                     }
 
                     rh.setRequestHandlerListener(MainActivity.this);
+
+
+                    NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+                    navigationView.setNavigationItemSelectedListener(MainActivity.this);
+                    View header = navigationView.getHeaderView(0);
+                    sideBarUserName = (TextView) header.findViewById(R.id.sideBarUser);
+                    sideBarEmail = (TextView) header.findViewById(R.id.sideBarEmail);
+                    sideBarUserName.setText(user.getDisplayName());
+                    sideBarEmail.setText(user.getEmail());
 
 //
 
@@ -301,18 +314,15 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_searchMusic) {
+            startActivity(new Intent(this, SearchActivity.class));
 
-        } else if (id == R.id.nav_slideshow) {
+        } else if (id == R.id.nav_friends) {
+            startActivity(new Intent(this, FriendsActivity.class));
 
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        } else if ( id == R.id.nav_logout){
+            rh.setStatus("offline");
+            FirebaseAuth.getInstance().signOut();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

@@ -29,6 +29,7 @@ public class ConnectionHandler {
         return ch;
     }
     private String TAG = "CONNECTION_HANDLER";
+    private String lastTimestamp;
 
     public ConnectionHandler(final String connectionKey) {
 //        RequestHandler rh = RequestHandler.getInstance();
@@ -44,7 +45,28 @@ public class ConnectionHandler {
         playback.put("imguri","none");
         playback.put("playtime", "none");
 
+        connectionRef.child("ready").setValue("0").addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                connectionRef.child("ready").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String readycount = dataSnapshot.getValue(String.class);
+                        Log.d("READYCOUNTER",readycount);
+                        if (Objects.equals(readycount, "2")){
+                            chl.onBothClientsReady();
+                            connectionRef.child("ready").setValue("0");
+//                            connectionRef.removeEventListener(this);
+                        }
+                    }
 
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        });
 
         connectionRef.child("playback").setValue(playback).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
@@ -55,11 +77,13 @@ public class ConnectionHandler {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         String songuri = dataSnapshot.child("songuri").getValue(String.class);
                         String timeStamp = dataSnapshot.child("playtime").getValue(String.class);
+                        String songimg = dataSnapshot.child("imguri").getValue(String.class);
                         Log.d(TAG,songuri);
                         if (!Objects.equals(songuri, "none")){
                             Log.d("playtime", timeStamp);
                             Log.d("getTime", String.valueOf(System.currentTimeMillis()));
-                            chl.onSongChanged(songuri, timeStamp);
+                            chl.onSongChanged(songuri, songimg, timeStamp);
+                            lastTimestamp = timeStamp;
                         }
 //                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
 //                            String songurl = snapshot.;
@@ -75,21 +99,37 @@ public class ConnectionHandler {
                 });
             }
         });
-
-
     }
 
+    public String getLastTimestamp(){
+        return lastTimestamp;
+    }
+
+    public void isReady(){
+        connectionRef.child("ready").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String currentCount = dataSnapshot.getValue(String.class);
+                Integer countInt = Integer.parseInt(currentCount);
+                countInt++;
+                String result = countInt.toString();
+                connectionRef.child("ready").setValue(result);
+                connectionRef.removeEventListener(this);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
     public void setConnectionHandlerListener (ConnectionHandlerListener chl){
         this.chl = chl;
     }
-
     public void selectSong(String songUri, String imgUri){
         Map<String,Object> playback = new HashMap<>();
         playback.put("status","paused");
         playback.put("songuri",songUri);
         playback.put("imguri",imgUri);
-        playback.put("playtime", String.valueOf(System.currentTimeMillis() + 10000));
-
+        playback.put("playtime", String.valueOf(System.currentTimeMillis() + 5000));
         connectionRef.child("playback").updateChildren(playback);
     }
 

@@ -58,8 +58,13 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
         super.onCreate(savedInstanceState);
 
         rh = RequestHandler.getInstance();
-        rh.setRequestHandlerListener(FriendsActivity.this);
-        rh.setStatus("online");
+        try{
+            rh.setRequestHandlerListener(FriendsActivity.this);
+            rh.setStatus("online");
+        } catch (NullPointerException e){
+            Log.d("Weird","Weird error on FriendActivity");
+        }
+
 
         setContentView(R.layout.activity_friends);
         list = (GridView) findViewById(R.id.friendsList);

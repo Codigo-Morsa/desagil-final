@@ -5,5 +5,6 @@ package pesadadobatata.songsync;
  */
 
 public interface ConnectionHandlerListener {
-    void onSongChanged(String songurl,String timeStamp);
+    void onSongChanged(String songurl, String imgurl, String timeStamp);
+    void onBothClientsReady();
 }

@@ -94,14 +94,11 @@ class RequestHandler{
             public void onCancelled(DatabaseError databaseError) {
 
             }
-
-
         });
 
         rh = this;
 
         }
-
 
     public String teste(){
         return "Request handler is running";
@@ -238,67 +235,12 @@ class RequestHandler{
                     rhl.onRequestAccepted();
                     new ConnectionHandler(requestKey);
                 }
-
-
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
             }
         });
-//        requestRef.child(requestKey).child("status").addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-////                try {
-//                String result = dataSnapshot.child("status").getValue(String.class);
-//                    if (Objects.equals(result, "accepted")) {
-//                        // Request has been accepted
-//                        Log.d("Request_result", "Request accepted");
-//                        dataSnapshot.getRef().getParent().addValueEventListener(new ValueEventListener() {
-//                            @Override
-//                            public void onDataChange(DataSnapshot dataSnapshot) {
-//                                String clientUid = dataSnapshot.child("uid").getValue().toString();
-//                                String clientUsername = dataSnapshot.child("username").getValue().toString();
-//                                FirebaseUser self = FirebaseAuth.getInstance().getCurrentUser();
-//                                openConnection(dataSnapshot.getKey(),self.getUid(),self.getDisplayName(),clientUid,clientUsername);
-//                                requestKeyRef.removeValue();
-//                            }
-//
-//                            @Override
-//                            public void onCancelled(DatabaseError databaseError) {
-//
-//                            }
-//
-//                        });
-//
-////                        try {
-//////                            requestsList.pop();
-////                        } catch (NoSuchElementException e) {
-////                            Log.d("ERR", "Empty requestsList");
-////                        }
-//
-//                    } else if (Objects.equals(result, "rejected")) {
-//                        Log.d("Request_result", "Request rejected");
-//                        requestKeyRef.removeValue();
-//
-////                        try {
-////                            requestsList.pop();
-////                        } catch (NoSuchElementException e) {
-////                            Log.d("ERR", "Empty requestsList");
-////                        }
-//                    }
-////                    Log.d("RequestsList", Arrays.toString(requestsList.toArray()));
-////                } catch (NullPointerException e) {
-////                    Log.d("ERR", "NullPointer on ValueListener. probably cleared all remaining requests @ pause");
-////                }
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//            }
-//
-//        });
     }
 
     public void openConnection(String ckey,String hostid, String hostusr, String clientid, String clientusr){
@@ -316,7 +258,6 @@ class RequestHandler{
         rh = null;
 
     }
-
 
     public void clearRequests(){
         Log.d("REQUEST_HANDLER","Clearing requests and setting status offline");

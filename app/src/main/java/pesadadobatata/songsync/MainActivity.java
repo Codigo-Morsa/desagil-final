@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.support.annotation.IntegerRes;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.Snackbar;
@@ -32,6 +33,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.common.net.InternetDomainName;
 import com.google.firebase.database.DatabaseReference;
@@ -54,6 +56,7 @@ import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,7 +82,7 @@ import com.google.firebase.database.DataSnapshot;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         SpotifyPlayer.NotificationCallback,
-        ConnectionStateCallback, RequestHandlerListener, ConnectionHandlerListener{
+        ConnectionStateCallback, RequestHandlerListener, ConnectionHandlerListener {
 
 
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -103,7 +106,8 @@ public class MainActivity extends AppCompatActivity
     private Boolean rhloaded = false;
     private RequestHandler rh;
     private AlarmManager alarmMgr;
-    private PendingIntent alarmIntent;
+    private Intent alarmIntent;
+    private PendingIntent pendingIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,18 +123,13 @@ public class MainActivity extends AppCompatActivity
 //        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
         thumbnail = (ImageView) findViewById(R.id.thumbnailView);
 
-
         final Context context = getApplicationContext();
-
-        alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-//        Intent alarmintent = new Intent(this, new BroadcastReceiver());
 
         LayoutInflater inflater = LayoutInflater.from(context);
         View cv = inflater.inflate(R.layout.content_main, null);
 
         final ConstraintLayout cl = (ConstraintLayout) cv.findViewById(R.id.cl);
 
-        Log.d("AEAWWA", String.valueOf(cl.isActivated()));
         Log.d("eaemenkk", SpotifyAPI.getString());
         mAuth =  FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
@@ -141,7 +140,6 @@ public class MainActivity extends AppCompatActivity
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
-
                     // User is signed in
                     userState = true;
                     Log.d("kk", "onAuthStateChanged:signed_in:" + user.getUid() + " username: " + user.getDisplayName());
@@ -355,9 +353,9 @@ public class MainActivity extends AppCompatActivity
         mPlayer.playUri(null, songuri,0,0);
     }
 
-    public void drawSongThumbnail(){
+    public void drawSongThumbnail(String thumburl){
         thumbnail.setVisibility(View.VISIBLE);
-        Picasso.with(context).load(SpotifyAPI.getThumbnailUrl()).into(thumbnail);
+        Picasso.with(getApplicationContext()).load(thumburl).into(thumbnail);
     }
 
     @Override
@@ -391,6 +389,20 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onPlaybackEvent(PlayerEvent playerEvent) {
         Log.d("MainActivity", "Playback event received: " + playerEvent.name());
+        if (Objects.equals(playerEvent.name(), "kSpPlaybackEventAudioFlush")){
+            ConnectionHandler.getInstance().isReady();
+            mPlayer.pause(new Player.OperationCallback() {
+                @Override
+                public void onSuccess() {
+                    Log.d("PLAYER","Player is ready");
+                }
+
+                @Override
+                public void onError(Error error) {
+
+                }
+            });
+        }
         switch (playerEvent) {
             // Handle event type as necessary
             default:
@@ -480,63 +492,66 @@ public class MainActivity extends AppCompatActivity
         }
 
     @Override
-    public void onSongChanged(final String songurl, String timeStamp) {
-        Timer timer = new Timer();
-        DateFormat.getDateInstance().format(timeStamp);
+    public void onSongChanged(final String songurl, final String imgurl, String timeStamp) {
+        playSong(songurl);
+        drawSongThumbnail(imgurl);
 
 
+//        alarmIntent = new Intent(MainActivity.this, AlarmReceiver.class);
+//        pendingIntent = PendingIntent.getBroadcast(MainActivity.this,0,alarmIntent,0);
+//
+////        DateFormat.getDateInstance().format(timeStamp);
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.setTimeInMillis(Long.parseLong(timeStamp));
+//
+//        alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//        alarmMgr.setExact(AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(), pendingIntent);
+//        Log.d("ALARM","Alarm set to " + timeStamp + "Current time: " + System.currentTimeMillis());
 
+//        long dif = calendar.getTimeInMillis() - SystemClock.uptimeMillis();
+//        long delay = calendar.getTimeInMillis() - Long.parseLong(timeStamp);
+////        calendar.set(Calendar.MINUTE,0);
+////        calendar.set(Calendar.SECOND,0);
+////        calendar.set(Calendar.MILLISECOND,0);
+//        calendar.set(Calendar.MILLISECOND, (int) (calendar.get(Calendar.MILLISECOND) + delay));
+//        long start = calendar.getTimeInMillis() - dif + delay;
 
-
-
-
-
-
-
-        Log.d("OngSongChanged", songurl);
+        Log.d("OnSongChanged", songurl);
         Log.d("CURRENT TIMESTAMP",String.valueOf(System.currentTimeMillis()));
         Log.d("SERVER TIMESTAMP",timeStamp);
-        SystemClock.setCurrentTimeMillis(System.currentTimeMillis());
         Log.d("SystemClock",String.valueOf(SystemClock.uptimeMillis()));
 
-        long startTime = Long.parseLong(timeStamp);
-        Runnable playTrigger = new Runnable() {
-            @Override
-            public void run() {
-                Log.d("POSTATTIME","Triggered after 5 secs");
-                playSong(songurl);
-            }
-        };
-
-        new android.os.Handler().postAtTime(playTrigger,startTime);
+//        long startTime = Long.parseLong(timeStamp);
+//        Log.d("Calculated start", String.valueOf(start));
+//        new android.os.Handler().postAtTime(playTrigger,start);
     }
 
-
-
-    //    @Override
-//    public Dialog onCreateDialog(Bundle savedInstanceState) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        // Get the layout inflater
-//        LayoutInflater inflater = this.getLayoutInflater();
-//
-//        // Inflate and set the layout for the dialog
-//        // Pass null as the parent view because its going in the dialog layout
-//        builder.setView(inflater.inflate(R.layout.dialog_signin, null))
-//                // Add action buttons
-//                .setPositiveButton(R.string.username, new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int id) {
-//                        // sign in the user ...
-//                    }
-//                })
-//                .setNegativeButton(R.string.password, new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialog, int id) {
-//                        LoginDialogFragment.this.getDialog().cancel();
-//                    }
-//                });
-//        return builder.create();
-//    }
-
+    @Override
+    public void onBothClientsReady() {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Log.d("TIMERTASK","TIMERTASK FIRED");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String message = "Timer alarm Triggered";
+                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                        mPlayer.resume(new Player.OperationCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d("PLAYER","Resuming playback because both players are ready");
+                            }
+                            @Override
+                            public void onError(Error error) {
+                            }
+                        });
+                    }
+                });
+            }
+        }, new Date(Long.parseLong(ConnectionHandler.getInstance().getLastTimestamp())));
+    }
 
 }
 

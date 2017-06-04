@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_music"
+        android:enabled="true"
+        android:icon="@drawable/ic_music_note_white_36dp"
+        android:title="@string/música"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_friends"
+        android:enabled="true"
+        android:icon="@drawable/ic_face_white_36dp"
+        android:title="@string/amigos"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_lol"
+        android:enabled="true"
+        android:icon="@drawable/ic_menu_send"
+        android:title="@string/sup"
+        app:showAsAction="ifRoom" />
+</menu>

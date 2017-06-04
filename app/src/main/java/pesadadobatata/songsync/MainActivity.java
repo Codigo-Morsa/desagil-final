@@ -8,12 +8,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.IntegerRes;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BaseTransientBottomBar;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -95,7 +97,6 @@ public class MainActivity extends AppCompatActivity
     private Button signinbutton;
     private ImageView iv;
     private TextView tv;
-    private ProgressBar pb;
     private boolean userState;
     private SpotifyApi api;
     public String spotifyToken;
@@ -117,18 +118,42 @@ public class MainActivity extends AppCompatActivity
         final Button signinbutton = (Button) findViewById(R.id.signinbutton);
         final ImageView iv = (ImageView) findViewById(R.id.imageView2);
         final TextView tv = (TextView) findViewById(R.id.textView2);
-        final ProgressBar pb = (ProgressBar) findViewById(R.id.progressBar2);
-        final ImageButton fb = (ImageButton) findViewById(R.id.friendsButton);
-        final ImageButton sb = (ImageButton) findViewById(R.id.searchButton2);
 //        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
         thumbnail = (ImageView) findViewById(R.id.thumbnailView);
-
+        thumbnail.setVisibility(View.VISIBLE);
         final Context context = getApplicationContext();
-
         LayoutInflater inflater = LayoutInflater.from(context);
         View cv = inflater.inflate(R.layout.content_main, null);
 
         final ConstraintLayout cl = (ConstraintLayout) cv.findViewById(R.id.cl);
+
+        BottomNavigationView bottomNavigationView = (BottomNavigationView)
+                findViewById(R.id.bottom_navigation);
+
+        bottomNavigationView.setOnNavigationItemSelectedListener(
+                new BottomNavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.action_music:
+                                goToSearchActivity();
+//                                textFavorites.setVisibility(View.VISIBLE);
+//                                textSchedules.setVisibility(View.GONE);
+//                                textMusic.setVisibility(View.GONE);
+                                break;
+                            case R.id.action_friends:
+                                goToFriendsActivity();
+//                                textFavorites.setVisibility(View.GONE);
+//                                textSchedules.setVisibility(View.VISIBLE);
+//                                textMusic.setVisibility(View.GONE);
+                                break;
+//                            case R.id.action_music:
+//                                textFavorites.setVisibility(View.GONE);
+//                                break;
+                        }
+                        return false;
+                    }
+                });
 
         Log.d("eaemenkk", SpotifyAPI.getString());
         mAuth =  FirebaseAuth.getInstance();
@@ -143,14 +168,10 @@ public class MainActivity extends AppCompatActivity
                     // User is signed in
                     userState = true;
                     Log.d("kk", "onAuthStateChanged:signed_in:" + user.getUid() + " username: " + user.getDisplayName());
-                    pb.setVisibility(View.GONE);
                     loginbutton.setVisibility(View.GONE);
                     signinbutton.setVisibility(View.GONE);
                     iv.setVisibility(View.GONE);
                     tv.setVisibility(View.GONE);
-                    sb.setVisibility(View.VISIBLE);
-//                    ssf.setVisibility(View.VISIBLE);
-                    fb.setVisibility(View.VISIBLE);
                     if (!MainActivity.this.hasToken){
                         SpotifyAPI.authSpotify(MainActivity.this);
                     }
@@ -172,46 +193,19 @@ public class MainActivity extends AppCompatActivity
                     rh = null;
                     rhloaded = false;
                     Log.d("kk", "onAuthStateChanged:signed_out");
-                    pb.setVisibility(View.GONE);
                     loginbutton.setVisibility(View.VISIBLE);
                     signinbutton.setVisibility(View.VISIBLE);
                     iv.setVisibility(View.VISIBLE);
                     tv.setVisibility(View.VISIBLE);
-//                    ssf.setVisibility(View.GONE);
-                    sb.setVisibility(View.GONE);
-                    fb.setVisibility(View.GONE);
-
-
-//                    for (int i = 0; i<= cl.getChildCount() ; i ++){
-//                        cl.getChildAt(i).setVisibility(View.VISIBLE);
-//                    }
-                    //                Log.d("jikasa", String.valueOf(cl.getChildCount()));
-                    //                Log.d("kk", String.valueOf(cl.getChildAt(0).getId()));
-                    //                cl.getChildAt(0).setVisibility(View.GONE);
                 }
-                // ...
+
             }
         };
 
-//        // Read from the database
-//        mDatabase.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                // This method is called once with the initial value and again
-//                // whenever data at this location is updated.
-////                Map<String, String> value = dataSnapshot.getValue(Map.class);
-//                Map<String, String> value = (Map<String, String>) dataSnapshot.getValue();
-//                Log.d("Database now", "Value is: " + value);
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError error) {
-//                // Failed to read value
-//                Log.w("Erou", "Failed to read value.", error.toException());
-//            }
-//        });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitleTextColor(Color.BLACK);
+        toolbar.set
         setSupportActionBar(toolbar);
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -236,11 +230,11 @@ public class MainActivity extends AppCompatActivity
 //        View cv = inflater.inflate(R.layout.content_main, null);
     }
 
-    public void goToSearchActivity(View view){
+    public void goToSearchActivity(){
         Intent intent = new Intent(Intent.ACTION_MAIN);
         startActivity(new Intent(this, SearchActivity.class));
     }
-    public void goToFriendsActivity(View view){
+    public void goToFriendsActivity(){
         Intent intent = new Intent(Intent.ACTION_MAIN);
         startActivity(new Intent(this, FriendsActivity.class));
     }
@@ -354,7 +348,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void drawSongThumbnail(String thumburl){
-        thumbnail.setVisibility(View.VISIBLE);
         Picasso.with(getApplicationContext()).load(thumburl).into(thumbnail);
     }
 
@@ -445,7 +438,6 @@ public class MainActivity extends AppCompatActivity
                         mPlayer.addConnectionStateCallback(MainActivity.this);
                         mPlayer.addNotificationCallback(MainActivity.this);
                     }
-
                     @Override
                     public void onError(Throwable throwable) {
                         Log.e("MainActivity", "Could not initialize player: " + throwable.getMessage());
@@ -463,7 +455,6 @@ public class MainActivity extends AppCompatActivity
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-
                 if (!isFinishing()) {
                     rh.showRequestAlert(MainActivity.this);
                 }
@@ -496,7 +487,6 @@ public class MainActivity extends AppCompatActivity
         playSong(songurl);
         drawSongThumbnail(imgurl);
 
-
 //        alarmIntent = new Intent(MainActivity.this, AlarmReceiver.class);
 //        pendingIntent = PendingIntent.getBroadcast(MainActivity.this,0,alarmIntent,0);
 //
@@ -528,6 +518,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBothClientsReady() {
+        Date start = new Date(Long.parseLong(ConnectionHandler.getInstance().getLastTimestamp()));
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -550,7 +541,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
             }
-        }, new Date(Long.parseLong(ConnectionHandler.getInstance().getLastTimestamp())));
+        }, start );
     }
 
 }

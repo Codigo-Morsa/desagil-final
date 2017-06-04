@@ -6,10 +6,12 @@ import android.app.Application;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.constraint.solver.widgets.Snapshot;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -146,9 +148,10 @@ class RequestHandler{
         String syncrequester = this.lastrequest.child("username").getValue(String.class);
         final DatabaseReference requestRef = FirebaseDatabase.getInstance().getReference("users/"+FirebaseAuth.getInstance().getCurrentUser().getUid()+"/requests/"+syncid);
 
-        new AlertDialog.Builder(activity)
+        final AlertDialog alert = new AlertDialog.Builder(activity)
                 .setTitle("Novo pedido de sync")
-                .setMessage("Sync ID:" + syncid + "\n" + "o usuário " + syncrequester + " solicitou uma sincronização com você")
+//                .setMessage("O usuário " + syncrequester + " solicitou uma sincronização com você")
+                .setMessage(Html.fromHtml("O usuário <b>" + syncrequester + "</b> solicitou uma sincronização com você"))
                 .setCancelable(false)
                 .setPositiveButton("Aceitar", new DialogInterface.OnClickListener() {
                     @Override
@@ -164,7 +167,15 @@ class RequestHandler{
                     public void onClick(DialogInterface dialog,int which){
                         requestRef.child("status").setValue("rejected");
                     }
-                }).show();
+                }).create();
+        alert.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface arg0) {
+                alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.GREEN);
+                alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.GRAY);
+            }
+        });
+        alert.show();
     }
 
     public Task<String> checkAvaiability(final String destinationId) {
@@ -219,7 +230,7 @@ class RequestHandler{
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String requestKey = dataSnapshot.getKey();
                 String requestStatus = dataSnapshot.child("status").getValue(String.class);
-                Log.d("REQUEST_"+requestKey,requestStatus);
+                Log.d("REQUEST_",requestKey + " " + requestStatus);
 
                 if (Objects.equals(requestStatus, "rejected")){
                     Log.d("REF",dataSnapshot.getRef().toString());

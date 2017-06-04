@@ -8,10 +8,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.RequiresApi;
 import android.os.SystemClock;
 import android.support.annotation.IntegerRes;
 import android.support.constraint.ConstraintLayout;
@@ -34,7 +32,6 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,8 +44,6 @@ import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Error;
-import com.spotify.sdk.android.player.Metadata;
-import com.spotify.sdk.android.player.PlaybackState;
 import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlayerEvent;
 import com.spotify.sdk.android.player.Spotify;
@@ -77,7 +72,6 @@ import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.TracksPager;
 import retrofit.client.Response;
-import samplesearch.Search;
 import samplesearch.SearchActivity;
 
 import com.google.firebase.database.DatabaseError;
@@ -108,19 +102,12 @@ public class MainActivity extends AppCompatActivity
     private Context context;
     private Boolean hasToken = false;
     private ImageView thumbnail;
-    private Button playButton;
-    private Button pauseButton;
-    private Button resumeButton;
-    private SeekBar musicProgress;
-    private TextView musicTimeRight;
-    private TextView musicTimeLeft;
     private DatabaseReference mDatabase;
-    private Thread thread;
-    private int flag;
     private Boolean rhloaded = false;
     private RequestHandler rh;
     private AlarmManager alarmMgr;
     private Intent alarmIntent;
+    private PendingIntent pendingIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,14 +121,7 @@ public class MainActivity extends AppCompatActivity
         final ImageButton fb = (ImageButton) findViewById(R.id.friendsButton);
         final ImageButton sb = (ImageButton) findViewById(R.id.searchButton2);
 //        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
-
         thumbnail = (ImageView) findViewById(R.id.thumbnailView);
-        playButton = (Button) findViewById(R.id.playButton);
-        pauseButton = (Button) findViewById(R.id.pauseButton);
-        resumeButton = (Button) findViewById(R.id.resumeButton);
-        musicProgress = (SeekBar) findViewById(R.id.musicProgress);
-        musicTimeRight = (TextView) findViewById(R.id.musicTimeRight);
-        musicTimeLeft = (TextView) findViewById(R.id.musicTimeLeft);
 
         final Context context = getApplicationContext();
 
@@ -355,18 +335,10 @@ public class MainActivity extends AppCompatActivity
         if (mAuthListener != null){
             mAuth.addAuthStateListener(mAuthListener);
         }
-
-        if (!Objects.equals(SpotifyAPI.getUri(), "")){
-            flag = 0;
-            drawSongThumbnail();
-            playerSetup();
-        }
-
 //        if (!Objects.equals(SpotifyAPI.getUri(), "")){
 //            playSong();
 //            drawSongThumbnail();
 //        }
-
     }
 
     @Override
@@ -377,108 +349,13 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
-    private Handler mHandler = new Handler();
-
-    public void playSong(View view){
-        mPlayer.playUri(null, SpotifyAPI.getUri(),0,0);
-        playButton.setVisibility(View.GONE);
-        pauseButton.setVisibility(View.VISIBLE);
-        flag = 1;
-
-
-
-
-       thread =  new Thread(new Runnable() {
-            public void run() {
-
-                while (mPlayer.getPlaybackState().positionMs < SpotifyAPI.getSongDuration() && flag==1) {
-
-
-
-                    // Update the progress bar
-                    mHandler.post(new Runnable() {
-                        @RequiresApi(api = Build.VERSION_CODES.N)
-                        public void run() {
-//                            mProgress.setProgress(mProgressStatus);
-                            musicTimeLeft.setText(transformTime(mPlayer.getPlaybackState().positionMs));
-                            long tillFinish = SpotifyAPI.getSongDuration() - mPlayer.getPlaybackState().positionMs;
-                            musicTimeRight.setText(transformTime(tillFinish));
-
-                            long pos = mPlayer.getPlaybackState().positionMs;
-                            long total = SpotifyAPI.getSongDuration();
-                            long percent = pos*1000/total;
-                            int per = (int) percent;
-                            musicProgress.setProgress(per, true);
-
-
-                        }
-                    });
-                }
-            }
-       });
-       thread.start();
-    }
-
-    public void pauseSong(View view){
-        mPlayer.pause(null);
-        pauseButton.setVisibility(View.GONE);
-        resumeButton.setVisibility(View.VISIBLE);
-
-
-        /*Metadata metadata = mPlayer.getMetadata();
-        Metadata.Track musica = metadata.currentTrack;
-        Log.d("METADATA", metadata.toString());*/
-
-    }
-
-    public void resumeSong(View view){
-        mPlayer.resume(null);
-        pauseButton.setVisibility(View.VISIBLE);
-        resumeButton.setVisibility(View.GONE);
-    }
-
-    public void playerSetup(){
-
-        playSong(null);
-        pauseSong(null);
-
-        pauseButton.setVisibility(View.GONE);
-        resumeButton.setVisibility(View.GONE);
-        playButton.setVisibility(View.VISIBLE);
-        musicProgress.setVisibility(View.VISIBLE);
-        musicTimeRight.setVisibility(View.VISIBLE);
-        musicTimeLeft.setVisibility(View.VISIBLE);
-
-        if(thread != null){
-            thread.interrupt();
-        }
-
-        musicTimeRight.setText(transformTime(SpotifyAPI.getSongDuration()));
-        musicTimeLeft.setText("0:00");
-
-
-    }
-
-    public String transformTime(long durMS){
-        long secLong = durMS/1000;
-        int sec = (int) secLong;
-        int min = sec/60;
-        sec = sec % 60;
-        String segundos = Integer.toString(sec);
-        if(sec<10){
-            segundos = "0"+segundos;
-        }
-        String duration = min + ":" + segundos;
-        return duration;
-
+    public void playSong(String songuri){
+        mPlayer.playUri(null, songuri,0,0);
     }
 
     public void drawSongThumbnail(String thumburl){
         thumbnail.setVisibility(View.VISIBLE);
-
         Picasso.with(getApplicationContext()).load(thumburl).into(thumbnail);
-
     }
 
     @Override
@@ -533,8 +410,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
-
     @Override
     public void onPlaybackError(Error error) {
         Log.d("MainActivity", "Playback error received: " + error.name());
@@ -544,8 +419,6 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
     }
-
-
 
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         rh.setStatus("online");
@@ -571,7 +444,6 @@ public class MainActivity extends AppCompatActivity
                         mPlayer = spotifyPlayer;
                         mPlayer.addConnectionStateCallback(MainActivity.this);
                         mPlayer.addNotificationCallback(MainActivity.this);
-
                     }
 
                     @Override

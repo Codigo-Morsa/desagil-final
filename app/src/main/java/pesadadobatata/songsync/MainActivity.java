@@ -474,12 +474,18 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public void drawSongThumbnail(String thumburl){
+//    public void drawSongThumbnail(String thumburl){
+//        thumbnail.setVisibility(View.VISIBLE);
+//
+//        Picasso.with(getApplicationContext()).load(thumburl).into(thumbnail);
+//
+//    }
+
+    public void drawSongThumbnail() {
         thumbnail.setVisibility(View.VISIBLE);
-
-        Picasso.with(getApplicationContext()).load(thumburl).into(thumbnail);
-
+        Picasso.with(context).load(SpotifyAPI.getThumbnailUrl()).into(thumbnail);
     }
+
 
     @Override
     public void onLoggedIn() {
@@ -621,8 +627,13 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onSongChanged(final String songurl, final String imgurl, String timeStamp) {
-        playSong(songurl);
-        drawSongThumbnail(imgurl);
+        //playSong(songurl);
+        //drawSongThumbnail(imgurl);
+
+        SpotifyAPI.setUri(songurl);
+        SpotifyAPI.setThumbnailUrl(imgurl);
+        //playSong(null);
+
 
 
 //        alarmIntent = new Intent(MainActivity.this, AlarmReceiver.class);

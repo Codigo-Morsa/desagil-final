@@ -206,6 +206,11 @@ public class SearchFriendsActivity extends AppCompatActivity implements RequestH
     }
 
     @Override
+    public void showPartnerName(String partnerName) {
+
+    }
+
+    @Override
     protected void onPause() {
         rh.setStatus("offline");
         super.onPause();

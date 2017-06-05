@@ -56,9 +56,9 @@ class RequestHandler{
     private String hostUid;
     private String hostUsername;
     DatabaseReference statusRef;
-
     private DatabaseReference mDatabase;
     private FirebaseAuth mAuth;
+    static String partnerUser;
 
 
     public RequestHandler() {
@@ -75,7 +75,8 @@ class RequestHandler{
         mDatabase.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Log.d("REQUEST_HANDLER", "New request recieved from " + dataSnapshot.child("username").getValue(String.class));
+                Log.d("REQUEST_HANDLER", "New request received from " + dataSnapshot.child("username").getValue(String.class));
+                partnerUser = dataSnapshot.child("username").getValue(String.class);
 //                for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
 //                    String uid = messageSnapshot.getKey();
 //                    Log.d("REQUEST_RECIEVER",uid);
@@ -127,7 +128,6 @@ class RequestHandler{
         final DatabaseReference connectionRef = FirebaseDatabase.getInstance().getReference().child("connections").child(syncid);
         Log.d("CONNECT","Trying to connect to " + connectionRef.getKey());
         final HashMap<String,String> client = new HashMap<>();
-        client.put("uid",FirebaseAuth.getInstance().getCurrentUser().getUid());
         client.put("username",FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
         connectionRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -135,6 +135,7 @@ class RequestHandler{
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     Log.d("DATA_CHANGED",ds.getKey());
                     if (Objects.equals(ds.getKey(), "host")){
+                        partnerUser = ds.child("username").getValue(String.class);
                         Log.d("CONNECT","Host is connected, connecting client");
                         connectionRef.child("client").setValue(client);
                         new ConnectionHandler(connectionRef.getKey());
@@ -212,10 +213,16 @@ class RequestHandler{
         return tcs.getTask();
     }
 
+    static String getPartnerUser(){
+        return partnerUser;
+    }
+
 
     public void sendRequest(final String destinationUid, final String destinationUsername) {
         // Deals with sent requests and its response;
         final FirebaseAuth mAuth = FirebaseAuth.getInstance();
+
+        partnerUser = destinationUsername;
 
         DatabaseReference requestRef = FirebaseDatabase.getInstance().getReference().child("users/" + destinationUid + "/requests");
 
@@ -224,7 +231,6 @@ class RequestHandler{
         request.put("username", mAuth.getCurrentUser().getDisplayName());
         request.put("destusr", destinationUsername);
         request.put("status", "sent");
-
 
         final DatabaseReference requestKeyRef = requestRef.push();
         String requestKey = requestKeyRef.getKey();
@@ -260,6 +266,7 @@ class RequestHandler{
                     dataSnapshot.getRef().removeValue();
                     rhl.onRequestAccepted();
                     new ConnectionHandler(requestKey);
+                    rhl.onConnectionHandlerCreated();
                 }
             }
 

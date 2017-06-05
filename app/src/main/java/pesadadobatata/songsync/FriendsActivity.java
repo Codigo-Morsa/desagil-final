@@ -174,6 +174,12 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
     public void onConnectionHandlerCreated() {
 
     }
+
+    @Override
+    public void showPartnerName(String partnerName) {
+
+    }
+
 }
 
 

@@ -119,11 +119,14 @@ public class SearchPresenter implements Search.ActionListener {
         ConnectionHandler ch = ConnectionHandler.getInstance();
         String songUrl = item.uri;
         String imageUrl = item.album.images.get(0).url;
+        String songName = item.name;
+//        String artistName = item.artists;
         long duration = item.duration_ms;
         SpotifyAPI.setSongDuration(duration);
         SpotifyAPI.setUri(songUrl);
         if (ch != null){
-            ch.selectSong(songUrl,imageUrl);
+//            ch.selectSong(songUrl,imageUrl);
+            ch.selectSong2(item);
         }
         SpotifyAPI.setThumbnailUrl(imageUrl);
     }

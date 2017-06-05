@@ -168,6 +168,11 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
 
     }
 
+    @Override
+    public void showPartnerName(String partnerName) {
+
+    }
+
 }
 
 

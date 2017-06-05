@@ -14,9 +14,9 @@
         android:title="@string/amigos"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/action_lol"
+        android:id="@+id/action_searchfriends"
         android:enabled="true"
         android:icon="@drawable/ic_menu_send"
-        android:title="@string/sup"
+        android:title="Buscar usuários"
         app:showAsAction="ifRoom" />
 </menu>

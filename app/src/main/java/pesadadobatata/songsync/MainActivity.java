@@ -81,6 +81,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DataSnapshot;
 
+import org.w3c.dom.Text;
+
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -97,7 +99,6 @@ public class MainActivity extends AppCompatActivity
     private Button loginbutton;
     private Button signinbutton;
     private ImageView iv;
-    private TextView tv;
     private boolean userState;
     private SpotifyApi api;
     public String spotifyToken;
@@ -116,6 +117,8 @@ public class MainActivity extends AppCompatActivity
     private TextView sideBarUserName;
     private TextView sideBarEmail;
     private ImageView pic;
+    private TextView tv;
+    private TextView partnerUserView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +128,7 @@ public class MainActivity extends AppCompatActivity
         final Button loginbutton = (Button) findViewById(R.id.loginbutton);
         final Button signinbutton = (Button) findViewById(R.id.signinbutton);
         final ImageView iv = (ImageView) findViewById(R.id.imageView2);
-        final TextView tv = (TextView) findViewById(R.id.textView2);
+        tv = (TextView) findViewById(R.id.textView2);
 //        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
         thumbnail = (ImageView) findViewById(R.id.thumbnailView);
         thumbnail.setVisibility(View.VISIBLE);
@@ -133,6 +136,7 @@ public class MainActivity extends AppCompatActivity
         LayoutInflater inflater = LayoutInflater.from(context);
         View cv = inflater.inflate(R.layout.content_main, null);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
+        partnerUserView = (TextView) findViewById(R.id.partnerUserView);
 
         bottomNavigationView.setOnNavigationItemSelectedListener(
                 new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -151,9 +155,9 @@ public class MainActivity extends AppCompatActivity
 //                                textSchedules.setVisibility(View.VISIBLE);
 //                                textMusic.setVisibility(View.GONE);
                                 break;
-//                            case R.id.action_music:
-//                                textFavorites.setVisibility(View.GONE);
-//                                break;
+                            case R.id.action_searchfriends:
+                                startActivity(new Intent(getApplicationContext(), SearchFriendsActivity.class));
+                                break;
                         }
                         return false;
                     }
@@ -189,7 +193,6 @@ public class MainActivity extends AppCompatActivity
                     loginbutton.setVisibility(View.GONE);
                     signinbutton.setVisibility(View.GONE);
                     iv.setVisibility(View.GONE);
-                    tv.setText("Experimente conectar-se com um amigo para ouvir uma música em sincronia!");
                     enableDrawer();
                     bottomNavigationView.setVisibility(View.VISIBLE);
                     if (!MainActivity.this.hasToken){
@@ -197,8 +200,8 @@ public class MainActivity extends AppCompatActivity
                     }
 
                     if (!rhloaded){
+                        tv.setText("Experimente conectar-se com um amigo para ouvir uma música em sincronia!");
                         rh = new RequestHandler();
-                        rh.teste();
                         Log.d("rhtest",rh.teste());
                         rhloaded = true;
                     }
@@ -210,6 +213,7 @@ public class MainActivity extends AppCompatActivity
                     sideBarEmail = (TextView) header.findViewById(R.id.sideBarEmail);
                     sideBarUserName.setText(user.getDisplayName());
                     sideBarEmail.setText(user.getEmail());
+//                    tv.setVisibility(View.GONE);
 
                 } else {
                     // User is signed out
@@ -230,17 +234,6 @@ public class MainActivity extends AppCompatActivity
         };
 
 
-
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
-
-
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -257,14 +250,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void goToSearchActivity(){
-        Intent intent = new Intent(Intent.ACTION_MAIN);
         startActivity(new Intent(this, SearchActivity.class));
     }
     public void goToFriendsActivity(){
-        Intent intent = new Intent(Intent.ACTION_MAIN);
         startActivity(new Intent(this, FriendsActivity.class));
     }
-
 
     public void onLoginButtonPressed(View view){
         Intent myIntent = new Intent(this, LoginActivity.class);
@@ -301,9 +291,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        // Handle action bar item clicks here.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -351,10 +339,6 @@ public class MainActivity extends AppCompatActivity
         if (mAuthListener != null){
             mAuth.addAuthStateListener(mAuthListener);
         }
-//        if (!Objects.equals(SpotifyAPI.getUri(), "")){
-//            playSong();
-//            drawSongThumbnail();
-//        }
     }
 
     @Override
@@ -388,7 +372,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLoginFailed(Error error) {
         Log.d("MainActivity", "Login failed");
-
     }
 
     @Override
@@ -434,6 +417,7 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
     }
+
 
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         rh.setStatus("online");
@@ -484,6 +468,16 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    public void showPartnerUser(){
+        Log.d("SHOWPARTNERUSER","FUNCTION CALLED");
+        if (RequestHandler.getPartnerUser() != null){
+            Log.d("SHOWPARTNERUSER","FUNCTION ENTERED");
+            partnerUserView.setVisibility(View.VISIBLE);
+            partnerUserView.setText("Conectado com " + RequestHandler.getPartnerUser());
+            tv.setVisibility(View.GONE);
+        }
+    }
+
     @Override
     public void onRequestAccepted() {
         Snackbar.make(this.getCurrentFocus(), "Seu pedido de sincronização foi aceito!", Snackbar.LENGTH_LONG)
@@ -496,6 +490,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void showPartnerName(String partnerName) {
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         if (rhloaded){
@@ -505,7 +503,17 @@ public class MainActivity extends AppCompatActivity
         }
 
     @Override
+    protected void onResume() {
+        if (rhloaded){
+            showPartnerUser();
+            rh.setStatus("online");
+        }
+        super.onResume();
+    }
+
+    @Override
     public void onSongChanged(final String songurl, final String imgurl, String timeStamp) {
+        tv.setVisibility(View.GONE);
         playSong(songurl);
         drawSongThumbnail(imgurl);
 
@@ -542,6 +550,7 @@ public class MainActivity extends AppCompatActivity
     public void onBothClientsReady() {
         Date start = new Date(Long.parseLong(ConnectionHandler.getInstance().getLastTimestamp()));
         Timer timer = new Timer();
+
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -560,6 +569,7 @@ public class MainActivity extends AppCompatActivity
                             public void onError(Error error) {
                             }
                         });
+//
                     }
                 });
             }

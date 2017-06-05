@@ -43,8 +43,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DataSnapshot;
 
 
+
 public class FriendsActivity extends AppCompatActivity implements RequestHandlerListener{
     private DatabaseReference mDatabase;
+    private FirebaseAuth mAuth;
     private HashMap[] eita;
     private List<Friend> userNames;
     private String[] usernamesArray;
@@ -53,10 +55,13 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("friendslist");
         userNames = new LinkedList<>();
         super.onCreate(savedInstanceState);
         setTitle("Lista de amigos");
+
+        Log.d("mDatabase", mDatabase.toString());
 
         rh = RequestHandler.getInstance();
         try{
@@ -93,11 +98,13 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
 
                 for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
                     String uid =  messageSnapshot.getKey();
-                    String userName = (String) messageSnapshot.child("username").getValue();
-
+                    String userName = (String) messageSnapshot.getValue();
+                    if (userName.equals(" ")){
+                        continue;
+                    }
                     userNames.add(new Friend(uid, userName));
                 }
-
+                Log.d("chegou men", userNames.toString());
                 showUsers();
                 mDatabase.removeEventListener(this);
 

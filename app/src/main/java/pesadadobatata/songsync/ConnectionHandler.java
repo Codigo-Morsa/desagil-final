@@ -152,7 +152,7 @@ public class ConnectionHandler {
 
     public void selectSong2(Track track){
         connectionRef.child("playback").child("track").setValue(track);
-        connectionRef.child("playback").child("playtime").setValue(String.valueOf(System.currentTimeMillis() + 5000));
+        connectionRef.child("playback").child("playtime").setValue(String.valueOf(System.currentTimeMillis() + 6000));
         connectionRef.child("status").setValue("playing");
     }
 

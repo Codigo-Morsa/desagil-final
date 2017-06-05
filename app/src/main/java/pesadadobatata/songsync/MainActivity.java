@@ -382,9 +382,9 @@ public class MainActivity extends AppCompatActivity
 
     private Handler mHandler = new Handler();
 
-    public void playSong(View view){
-        mPlayer.playUri(null, SpotifyAPI.getUri(),0,0);
-    }
+//    public void playSong(View view){
+//        mPlayer.playUri(null, SpotifyAPI.getUri(),0,0);
+//    }
 
     public void pauseSong(View view){
         ConnectionHandler.getInstance().onSongPause();
@@ -526,6 +526,7 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onInitialized(SpotifyPlayer spotifyPlayer) {
                         mPlayer = spotifyPlayer;
+                        Log.d("mPlayer","mPlayer created");
                         mPlayer.addConnectionStateCallback(MainActivity.this);
                         mPlayer.addNotificationCallback(MainActivity.this);
                     }
@@ -656,8 +657,8 @@ public class MainActivity extends AppCompatActivity
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-//                        String message = "Timer alarm Triggered";
-//                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                        String message = "Timer triggered";
+                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
                         mPlayer.resume(new Player.OperationCallback() {
                             @Override
                             public void onSuccess() {

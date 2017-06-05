@@ -10,10 +10,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.IntegerRes;
+import android.support.annotation.RequiresApi;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.BottomNavigationView;
@@ -35,6 +37,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -120,6 +123,15 @@ public class MainActivity extends AppCompatActivity
     private TextView tv;
     private TextView partnerUserView;
 
+    private Button playButton;
+    private Button pauseButton;
+    private Button resumeButton;
+    private SeekBar musicProgress;
+    private TextView musicTimeRight;
+    private TextView musicTimeLeft;
+    private Thread thread;
+    private int flag;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -132,6 +144,14 @@ public class MainActivity extends AppCompatActivity
 //        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
         thumbnail = (ImageView) findViewById(R.id.thumbnailView);
         thumbnail.setVisibility(View.VISIBLE);
+        playButton = (Button) findViewById(R.id.playButton);
+        pauseButton = (Button) findViewById(R.id.pauseButton);
+        resumeButton = (Button) findViewById(R.id.resumeButton);
+        musicProgress = (SeekBar) findViewById(R.id.musicProgress);
+        musicTimeRight = (TextView) findViewById(R.id.musicTimeRight);
+        musicTimeLeft = (TextView) findViewById(R.id.musicTimeLeft);
+
+
         final Context context = getApplicationContext();
         LayoutInflater inflater = LayoutInflater.from(context);
         View cv = inflater.inflate(R.layout.content_main, null);
@@ -358,6 +378,108 @@ public class MainActivity extends AppCompatActivity
             mAuth.removeAuthStateListener(mAuthListener);
         }
     }
+
+    private Handler mHandler = new Handler();
+
+    public void playSong(View view){
+        mPlayer.playUri(null, SpotifyAPI.getUri(),0,0);
+        playButton.setVisibility(View.GONE);
+        pauseButton.setVisibility(View.VISIBLE);
+        flag = 1;
+
+
+
+
+        thread =  new Thread(new Runnable() {
+            public void run() {
+
+                while (mPlayer.getPlaybackState().positionMs < SpotifyAPI.getSongDuration() && flag==1) {
+
+
+
+                    // Update the progress bar
+                    mHandler.post(new Runnable() {
+                        @RequiresApi(api = Build.VERSION_CODES.N)
+                        public void run() {
+//                            mProgress.setProgress(mProgressStatus);
+                            musicTimeLeft.setText(transformTime(mPlayer.getPlaybackState().positionMs));
+                            long tillFinish = SpotifyAPI.getSongDuration() - mPlayer.getPlaybackState().positionMs;
+                            musicTimeRight.setText(transformTime(tillFinish));
+
+                            long pos = mPlayer.getPlaybackState().positionMs;
+                            long total = SpotifyAPI.getSongDuration();
+                            long percent = pos*1000/total;
+                            int per = (int) percent;
+                            musicProgress.setProgress(per, true);
+
+
+                        }
+                    });
+                }
+            }
+        });
+        thread.start();
+    }
+
+    public void pauseSong(View view){
+        mPlayer.pause(null);
+        pauseButton.setVisibility(View.GONE);
+        resumeButton.setVisibility(View.VISIBLE);
+
+
+        /*Metadata metadata = mPlayer.getMetadata();
+        Metadata.Track musica = metadata.currentTrack;
+        Log.d("METADATA", metadata.toString());*/
+
+    }
+
+    public void resumeSong(View view){
+        mPlayer.resume(null);
+        pauseButton.setVisibility(View.VISIBLE);
+        resumeButton.setVisibility(View.GONE);
+    }
+
+    public void playerSetup(){
+
+//        playSong(null);
+        pauseSong(null);
+
+        pauseButton.setVisibility(View.GONE);
+        resumeButton.setVisibility(View.GONE);
+        playButton.setVisibility(View.VISIBLE);
+        musicProgress.setVisibility(View.VISIBLE);
+        musicTimeRight.setVisibility(View.VISIBLE);
+        musicTimeLeft.setVisibility(View.VISIBLE);
+
+        if(thread != null){
+            thread.interrupt();
+        }
+
+        musicTimeRight.setText(transformTime(SpotifyAPI.getSongDuration()));
+        musicTimeLeft.setText("0:00");
+
+
+    }
+
+    public String transformTime(long durMS){
+        long secLong = durMS/1000;
+        int sec = (int) secLong;
+        int min = sec/60;
+        sec = sec % 60;
+        String segundos = Integer.toString(sec);
+        if(sec<10){
+            segundos = "0"+segundos;
+        }
+        String duration = min + ":" + segundos;
+        return duration;
+    }
+
+    public void drawSongThumbnail(){
+        thumbnail.setVisibility(View.VISIBLE);
+        Picasso.with(context).load(SpotifyAPI.getThumbnailUrl()).into(thumbnail);
+
+    }
+
 
     public void playSong(String songuri){
         mPlayer.playUri(null, songuri,0,0);

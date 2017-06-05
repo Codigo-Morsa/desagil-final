@@ -227,6 +227,7 @@ public class MainActivity extends AppCompatActivity
                     signinbutton.setVisibility(View.VISIBLE);
                     iv.setVisibility(View.VISIBLE);
                     tv.setVisibility(View.VISIBLE);
+                    partnerUserView.setVisibility(View.GONE);
                     disableDrawer();
                 }
 
@@ -268,6 +269,15 @@ public class MainActivity extends AppCompatActivity
 
     public void signOut(MenuItem menuItem){
         rh.setStatus("offline");
+        mPlayer.pause(new Player.OperationCallback() {
+            @Override
+            public void onSuccess() {
+            }
+
+            @Override
+            public void onError(Error error) {
+            }
+        });
         FirebaseAuth.getInstance().signOut();
     }
 
@@ -418,7 +428,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         rh.setStatus("online");
         Log.d("ACTIVITY","Returned to MainActivity");
@@ -514,6 +523,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onSongChanged(final String songurl, final String imgurl, String timeStamp) {
         tv.setVisibility(View.GONE);
+
         playSong(songurl);
         drawSongThumbnail(imgurl);
 
@@ -558,8 +568,8 @@ public class MainActivity extends AppCompatActivity
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        String message = "Timer alarm Triggered";
-                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+//                        String message = "Timer alarm Triggered";
+//                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
                         mPlayer.resume(new Player.OperationCallback() {
                             @Override
                             public void onSuccess() {

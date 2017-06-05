@@ -137,7 +137,6 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
         HashMap<String, String> username = new HashMap<>();
         username.put("uid", userId);
         mDatabase.child("users").child(userId).setValue(user);
-        mDatabase.child("usernames").child(name.toLowerCase()).setValue(username);
         mDatabase.child("users").child(userId).child("friendslist").setValue(friendslist);
     }
 

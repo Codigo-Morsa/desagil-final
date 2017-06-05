@@ -3,6 +3,7 @@ package pesadadobatata.songsync;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -21,6 +22,8 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -43,8 +46,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DataSnapshot;
 
 
+
 public class FriendsActivity extends AppCompatActivity implements RequestHandlerListener{
     private DatabaseReference mDatabase;
+    private FirebaseAuth mAuth;
     private HashMap[] eita;
     private List<Friend> userNames;
     private String[] usernamesArray;
@@ -53,9 +58,13 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("friendslist");
         userNames = new LinkedList<>();
         super.onCreate(savedInstanceState);
+        setTitle("Lista de amigos");
+
+        Log.d("mDatabase", mDatabase.toString());
 
         rh = RequestHandler.getInstance();
         try{
@@ -92,11 +101,13 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
 
                 for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
                     String uid =  messageSnapshot.getKey();
-                    String userName = (String) messageSnapshot.child("username").getValue();
-
+                    String userName = (String) messageSnapshot.getValue();
+                    if (userName.equals(" ")){
+                        continue;
+                    }
                     userNames.add(new Friend(uid, userName));
                 }
-
+                Log.d("chegou men", userNames.toString());
                 showUsers();
                 mDatabase.removeEventListener(this);
 
@@ -119,6 +130,36 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
         final List<String> alo = new ArrayList<String>(Arrays.asList(usernamesArray));
         final ArrayAdapter<String> gridViewArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, alo);
         list.setAdapter(gridViewArrayAdapter);
+
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, final View view, final int position, long id) {
+                rh.checkAvaiability(userNames.get(position).getUid()).addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (view.isEnabled()) {
+                            if (Objects.equals(task.getResult(), "online")) {
+                                rh.sendRequest(userNames.get(position).getUid(),userNames.get(position).getUserName());
+                                Snackbar.make(view, "Solicitando sincronização com " + userNames.get(position).getUserName(), Snackbar.LENGTH_LONG)
+                                        .setAction("Action", null).show();
+                                view.setEnabled(false);
+                                view.setClickable(false);
+                                view.setFocusable(false);
+
+                            } else {
+                                Snackbar.make(view, "O usuário " + userNames.get(position).getUserName() + " parece estar offline", Snackbar.LENGTH_LONG)
+                                        .setAction("Action", null).show();
+                            }
+                        }
+                    }
+                });
+//                Snackbar.make(view, "Solicitando sincronização com " + userNames.get(position).getUsername(), Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+            }
+        });
+
+
+
     }
 
     public void onStart() {
@@ -167,6 +208,11 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
 
     }
 
+    @Override
+    public void showPartnerName(String partnerName) {
+
+    }
+
 }
 
 
@@ -175,11 +221,13 @@ class Friend{
     private String userName;
 
     public Friend(String UserId, String userName){
-            this.UserID = UserID;
+            this.UserID = UserId;
             this.userName = userName;
-
-        }
+    }
     public String getUserName(){
         return this.userName;
     }
+    public String getUid() { return this.UserID; }
     }
+
+

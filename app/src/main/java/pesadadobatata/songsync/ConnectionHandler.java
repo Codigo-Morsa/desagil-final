@@ -5,10 +5,12 @@ import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import java.sql.Date;
@@ -130,6 +132,7 @@ public class ConnectionHandler {
         playback.put("songuri",songUri);
         playback.put("imguri",imgUri);
         playback.put("playtime", String.valueOf(System.currentTimeMillis() + 5000));
+//        playback.put("playtime", String.valueOf(ServerValue.TIMESTAMP));
         connectionRef.child("playback").updateChildren(playback);
     }
 

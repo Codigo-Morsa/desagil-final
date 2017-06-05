@@ -26,12 +26,8 @@
 
     <Button
         android:id="@+id/loginbutton"
-        android:layout_width="200dp"
-        android:layout_height="60dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:alpha="0.85"
         android:backgroundTint="@color/semiGreen"
         android:elevation="4dp"
@@ -47,12 +43,8 @@
 
     <Button
         android:id="@+id/signinbutton"
-        android:layout_width="200dp"
-        android:layout_height="60dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:alpha="0.85"
         android:backgroundTint="@color/semiGreen"
         android:elevation="4dp"
@@ -68,12 +60,8 @@
 
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="138dp"
-        android:layout_height="180dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:alpha="0.85"
         android:contentDescription="@string/logo"
         android:elevation="4dp"
@@ -87,8 +75,8 @@
 
     <TextView
         android:id="@+id/textView2"
-        android:layout_width="319dp"
-        android:layout_height="111dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:elevation="4dp"
         android:shadowColor="@android:color/black"
         android:shadowDx="1"
@@ -96,7 +84,7 @@
         android:shadowRadius="2"
         android:text="Escute com seus amigos suas músicas preferidas em perfeita sincronia através do Spotify©"
         android:textAlignment="center"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:textSize="18sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -108,10 +96,8 @@
 
     <EditText
         android:id="@+id/songsearchField"
-        android:layout_width="321dp"
-        android:layout_height="40dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="31dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:backgroundTint="@android:color/white"
         android:ems="10"
         android:hint="Nome da música"
@@ -140,7 +126,8 @@
         android:layout_marginBottom="8dp"
         android:layout_marginLeft="16dp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintVertical_bias="0.015" />
+        app:layout_constraintVertical_bias="0.015"
+        android:layout_marginStart="16dp" />
 
     <ImageButton
         android:id="@+id/friendsButton"
@@ -156,138 +143,28 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.064"
-        app:srcCompat="@android:drawable/ic_menu_call" />
+        app:srcCompat="@drawable/ic_face_black_24dp"
+        android:layout_marginEnd="16dp" />
 
     <ImageView
         android:id="@+id/thumbnailView"
-        android:layout_width="261dp"
-        android:layout_height="249dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintHorizontal_bias="0.505"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.352"
+        app:layout_constraintVertical_bias="0.534"
         app:srcCompat="@android:drawable/alert_dark_frame" />
 
-    <Button
-        android:id="@+id/playButton"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:background="@android:drawable/ic_media_play"
-        android:elevation="0dp"
-        android:fontFamily="casual"
-        android:onClick="playSong"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        android:textSize="100sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/progressBar2"
-        app:layout_constraintVertical_bias="0.8" />
-
-    <Button
-        android:id="@+id/resumeButton"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:background="@android:drawable/ic_media_play"
-        android:elevation="0dp"
-        android:fontFamily="casual"
-        android:onClick="resumeSong"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        android:textSize="100sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/progressBar2"
-        app:layout_constraintVertical_bias="0.8" />
-
-    <Button
-        android:id="@+id/pauseButton"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:background="@android:drawable/ic_media_pause"
-        android:elevation="2dp"
-        android:onClick="pauseSong"
-        android:textAlignment="center"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.504"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/progressBar2"
-        app:layout_constraintVertical_bias="0.8" />
-
-    <SeekBar
-        android:id="@+id/musicProgress"
-        android:layout_width="236dp"
-        android:layout_height="55dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:backgroundTint="@color/semiGreen"
-        android:contextClickable="false"
-        android:indeterminate="false"
-        android:max="1000"
-        android:progressTint="@color/semiGreen"
-        android:scrollIndicators="left|right"
-        android:thumbTint="@color/semiGreen"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/progressBar2" />
-
-    <TextView
-        android:id="@+id/musicTimeLeft"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="0dp"
-        android:layout_marginTop="8dp"
-        android:text="00:00"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.3"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/musicProgress"
-        app:layout_constraintTop_toBottomOf="@+id/searchButton2"
-        app:layout_constraintVertical_bias="0.7" />
-
-    <TextView
-        android:id="@+id/musicTimeRight"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="0dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.712"
-        app:layout_constraintLeft_toRightOf="@+id/musicProgress"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/friendsButton"
-        app:layout_constraintVertical_bias="0.7" />
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="0dp"
+        android:layout_height="495dp"
+        tools:layout_editor_absoluteY="8dp"
+        tools:layout_editor_absoluteX="8dp">
+    </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>

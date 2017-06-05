@@ -8,14 +8,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Build;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.RequiresApi;
 import android.os.SystemClock;
 import android.support.annotation.IntegerRes;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BaseTransientBottomBar;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -34,7 +35,6 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,8 +47,6 @@ import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Error;
-import com.spotify.sdk.android.player.Metadata;
-import com.spotify.sdk.android.player.PlaybackState;
 import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlayerEvent;
 import com.spotify.sdk.android.player.Spotify;
@@ -77,12 +75,13 @@ import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.TracksPager;
 import retrofit.client.Response;
-import samplesearch.Search;
 import samplesearch.SearchActivity;
 
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DataSnapshot;
+
+import org.w3c.dom.Text;
 
 
 public class MainActivity extends AppCompatActivity
@@ -100,59 +99,87 @@ public class MainActivity extends AppCompatActivity
     private Button loginbutton;
     private Button signinbutton;
     private ImageView iv;
-    private TextView tv;
-    private ProgressBar pb;
     private boolean userState;
     private SpotifyApi api;
     public String spotifyToken;
     private Context context;
     private Boolean hasToken = false;
     private ImageView thumbnail;
-    private Button playButton;
-    private Button pauseButton;
-    private Button resumeButton;
-    private SeekBar musicProgress;
-    private TextView musicTimeRight;
-    private TextView musicTimeLeft;
     private DatabaseReference mDatabase;
-    private Thread thread;
-    private int flag;
     private Boolean rhloaded = false;
     private RequestHandler rh;
     private AlarmManager alarmMgr;
     private Intent alarmIntent;
+    private PendingIntent pendingIntent;
+    private NavigationView navigationView;
+    private ConstraintLayout cl;
+    private DrawerLayout drawer;
+    private TextView sideBarUserName;
+    private TextView sideBarEmail;
+    private ImageView pic;
+    private TextView tv;
+    private TextView partnerUserView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        final BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
         final Button loginbutton = (Button) findViewById(R.id.loginbutton);
         final Button signinbutton = (Button) findViewById(R.id.signinbutton);
         final ImageView iv = (ImageView) findViewById(R.id.imageView2);
-        final TextView tv = (TextView) findViewById(R.id.textView2);
-        final ProgressBar pb = (ProgressBar) findViewById(R.id.progressBar2);
-        final ImageButton fb = (ImageButton) findViewById(R.id.friendsButton);
-        final ImageButton sb = (ImageButton) findViewById(R.id.searchButton2);
+        tv = (TextView) findViewById(R.id.textView2);
 //        final EditText ssf = (EditText) findViewById(R.id.songsearchField);
-
         thumbnail = (ImageView) findViewById(R.id.thumbnailView);
-        playButton = (Button) findViewById(R.id.playButton);
-        pauseButton = (Button) findViewById(R.id.pauseButton);
-        resumeButton = (Button) findViewById(R.id.resumeButton);
-        musicProgress = (SeekBar) findViewById(R.id.musicProgress);
-        musicTimeRight = (TextView) findViewById(R.id.musicTimeRight);
-        musicTimeLeft = (TextView) findViewById(R.id.musicTimeLeft);
-
+        thumbnail.setVisibility(View.VISIBLE);
         final Context context = getApplicationContext();
-
         LayoutInflater inflater = LayoutInflater.from(context);
         View cv = inflater.inflate(R.layout.content_main, null);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        partnerUserView = (TextView) findViewById(R.id.partnerUserView);
 
-        final ConstraintLayout cl = (ConstraintLayout) cv.findViewById(R.id.cl);
+        bottomNavigationView.setOnNavigationItemSelectedListener(
+                new BottomNavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.action_music:
+                                goToSearchActivity();
+//                                textFavorites.setVisibility(View.VISIBLE);
+//                                textSchedules.setVisibility(View.GONE);
+//                                textMusic.setVisibility(View.GONE);
+                                break;
+                            case R.id.action_friends:
+                                goToFriendsActivity();
+//                                textFavorites.setVisibility(View.GONE);
+//                                textSchedules.setVisibility(View.VISIBLE);
+//                                textMusic.setVisibility(View.GONE);
+                                break;
+                            case R.id.action_searchfriends:
+                                startActivity(new Intent(getApplicationContext(), SearchFriendsActivity.class));
+                                break;
+                        }
+                        return false;
+                    }
+                });
+
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitleTextColor(Color.BLACK);
+        toolbar.hideOverflowMenu();
+        setSupportActionBar(toolbar);
+
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
 
         Log.d("eaemenkk", SpotifyAPI.getString());
         mAuth =  FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
 
@@ -163,91 +190,50 @@ public class MainActivity extends AppCompatActivity
                     // User is signed in
                     userState = true;
                     Log.d("kk", "onAuthStateChanged:signed_in:" + user.getUid() + " username: " + user.getDisplayName());
-                    pb.setVisibility(View.GONE);
                     loginbutton.setVisibility(View.GONE);
                     signinbutton.setVisibility(View.GONE);
                     iv.setVisibility(View.GONE);
-                    tv.setVisibility(View.GONE);
-                    sb.setVisibility(View.VISIBLE);
-//                    ssf.setVisibility(View.VISIBLE);
-                    fb.setVisibility(View.VISIBLE);
+                    enableDrawer();
+                    bottomNavigationView.setVisibility(View.VISIBLE);
                     if (!MainActivity.this.hasToken){
                         SpotifyAPI.authSpotify(MainActivity.this);
                     }
 
                     if (!rhloaded){
+                        tv.setText("Experimente conectar-se com um amigo para ouvir uma música em sincronia!");
                         rh = new RequestHandler();
-                        rh.teste();
                         Log.d("rhtest",rh.teste());
                         rhloaded = true;
                     }
 
                     rh.setRequestHandlerListener(MainActivity.this);
-
-//
+                    navigationView.setNavigationItemSelectedListener(MainActivity.this);
+                    View header = navigationView.getHeaderView(0);
+                    sideBarUserName = (TextView) header.findViewById(R.id.sideBarUser);
+                    sideBarEmail = (TextView) header.findViewById(R.id.sideBarEmail);
+                    sideBarUserName.setText(user.getDisplayName());
+                    sideBarEmail.setText(user.getEmail());
+//                    tv.setVisibility(View.GONE);
 
                 } else {
                     // User is signed out
+                    bottomNavigationView.setVisibility(View.INVISIBLE);
+                    thumbnail.setVisibility(View.GONE);
                     userState = false;
                     rh = null;
                     rhloaded = false;
                     Log.d("kk", "onAuthStateChanged:signed_out");
-                    pb.setVisibility(View.GONE);
                     loginbutton.setVisibility(View.VISIBLE);
                     signinbutton.setVisibility(View.VISIBLE);
                     iv.setVisibility(View.VISIBLE);
                     tv.setVisibility(View.VISIBLE);
-//                    ssf.setVisibility(View.GONE);
-                    sb.setVisibility(View.GONE);
-                    fb.setVisibility(View.GONE);
-
-
-//                    for (int i = 0; i<= cl.getChildCount() ; i ++){
-//                        cl.getChildAt(i).setVisibility(View.VISIBLE);
-//                    }
-                    //                Log.d("jikasa", String.valueOf(cl.getChildCount()));
-                    //                Log.d("kk", String.valueOf(cl.getChildAt(0).getId()));
-                    //                cl.getChildAt(0).setVisibility(View.GONE);
+                    partnerUserView.setVisibility(View.GONE);
+                    disableDrawer();
                 }
-                // ...
+
             }
         };
 
-//        // Read from the database
-//        mDatabase.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                // This method is called once with the initial value and again
-//                // whenever data at this location is updated.
-////                Map<String, String> value = dataSnapshot.getValue(Map.class);
-//                Map<String, String> value = (Map<String, String>) dataSnapshot.getValue();
-//                Log.d("Database now", "Value is: " + value);
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError error) {
-//                // Failed to read value
-//                Log.w("Erou", "Failed to read value.", error.toException());
-//            }
-//        });
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -256,15 +242,20 @@ public class MainActivity extends AppCompatActivity
 //        View cv = inflater.inflate(R.layout.content_main, null);
     }
 
-    public void goToSearchActivity(View view){
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        startActivity(new Intent(this, SearchActivity.class));
-    }
-    public void goToFriendsActivity(View view){
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        startActivity(new Intent(this, FriendsActivity.class));
+    public void enableDrawer(){
+        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
+    public void disableDrawer(){
+        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+    }
+
+    public void goToSearchActivity(){
+        startActivity(new Intent(this, SearchActivity.class));
+    }
+    public void goToFriendsActivity(){
+        startActivity(new Intent(this, FriendsActivity.class));
+    }
 
     public void onLoginButtonPressed(View view){
         Intent myIntent = new Intent(this, LoginActivity.class);
@@ -278,6 +269,15 @@ public class MainActivity extends AppCompatActivity
 
     public void signOut(MenuItem menuItem){
         rh.setStatus("offline");
+        mPlayer.pause(new Player.OperationCallback() {
+            @Override
+            public void onSuccess() {
+            }
+
+            @Override
+            public void onError(Error error) {
+            }
+        });
         FirebaseAuth.getInstance().signOut();
     }
 
@@ -296,15 +296,12 @@ public class MainActivity extends AppCompatActivity
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
 //        inflate(R.layout.app_bar_main,menu);
-
-        return true;
+        return false;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        // Handle action bar item clicks here.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -321,18 +318,15 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_searchMusic) {
+            startActivity(new Intent(this, SearchActivity.class));
 
-        } else if (id == R.id.nav_slideshow) {
+        } else if (id == R.id.nav_friends) {
+            startActivity(new Intent(this, FriendsActivity.class));
 
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        } else if ( id == R.id.nav_logout){
+            rh.setStatus("offline");
+            FirebaseAuth.getInstance().signOut();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -355,18 +349,6 @@ public class MainActivity extends AppCompatActivity
         if (mAuthListener != null){
             mAuth.addAuthStateListener(mAuthListener);
         }
-
-        if (!Objects.equals(SpotifyAPI.getUri(), "")){
-            flag = 0;
-            drawSongThumbnail();
-            playerSetup();
-        }
-
-//        if (!Objects.equals(SpotifyAPI.getUri(), "")){
-//            playSong();
-//            drawSongThumbnail();
-//        }
-
     }
 
     @Override
@@ -377,108 +359,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
-    private Handler mHandler = new Handler();
-
-    public void playSong(View view){
-        mPlayer.playUri(null, SpotifyAPI.getUri(),0,0);
-        playButton.setVisibility(View.GONE);
-        pauseButton.setVisibility(View.VISIBLE);
-        flag = 1;
-
-
-
-
-       thread =  new Thread(new Runnable() {
-            public void run() {
-
-                while (mPlayer.getPlaybackState().positionMs < SpotifyAPI.getSongDuration() && flag==1) {
-
-
-
-                    // Update the progress bar
-                    mHandler.post(new Runnable() {
-                        @RequiresApi(api = Build.VERSION_CODES.N)
-                        public void run() {
-//                            mProgress.setProgress(mProgressStatus);
-                            musicTimeLeft.setText(transformTime(mPlayer.getPlaybackState().positionMs));
-                            long tillFinish = SpotifyAPI.getSongDuration() - mPlayer.getPlaybackState().positionMs;
-                            musicTimeRight.setText(transformTime(tillFinish));
-
-                            long pos = mPlayer.getPlaybackState().positionMs;
-                            long total = SpotifyAPI.getSongDuration();
-                            long percent = pos*1000/total;
-                            int per = (int) percent;
-                            musicProgress.setProgress(per, true);
-
-
-                        }
-                    });
-                }
-            }
-       });
-       thread.start();
-    }
-
-    public void pauseSong(View view){
-        mPlayer.pause(null);
-        pauseButton.setVisibility(View.GONE);
-        resumeButton.setVisibility(View.VISIBLE);
-
-
-        /*Metadata metadata = mPlayer.getMetadata();
-        Metadata.Track musica = metadata.currentTrack;
-        Log.d("METADATA", metadata.toString());*/
-
-    }
-
-    public void resumeSong(View view){
-        mPlayer.resume(null);
-        pauseButton.setVisibility(View.VISIBLE);
-        resumeButton.setVisibility(View.GONE);
-    }
-
-    public void playerSetup(){
-
-        playSong(null);
-        pauseSong(null);
-
-        pauseButton.setVisibility(View.GONE);
-        resumeButton.setVisibility(View.GONE);
-        playButton.setVisibility(View.VISIBLE);
-        musicProgress.setVisibility(View.VISIBLE);
-        musicTimeRight.setVisibility(View.VISIBLE);
-        musicTimeLeft.setVisibility(View.VISIBLE);
-
-        if(thread != null){
-            thread.interrupt();
-        }
-
-        musicTimeRight.setText(transformTime(SpotifyAPI.getSongDuration()));
-        musicTimeLeft.setText("0:00");
-
-
-    }
-
-    public String transformTime(long durMS){
-        long secLong = durMS/1000;
-        int sec = (int) secLong;
-        int min = sec/60;
-        sec = sec % 60;
-        String segundos = Integer.toString(sec);
-        if(sec<10){
-            segundos = "0"+segundos;
-        }
-        String duration = min + ":" + segundos;
-        return duration;
-
+    public void playSong(String songuri){
+        mPlayer.playUri(null, songuri,0,0);
     }
 
     public void drawSongThumbnail(String thumburl){
-        thumbnail.setVisibility(View.VISIBLE);
-
         Picasso.with(getApplicationContext()).load(thumburl).into(thumbnail);
-
     }
 
     @Override
@@ -496,7 +382,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLoginFailed(Error error) {
         Log.d("MainActivity", "Login failed");
-
     }
 
     @Override
@@ -533,8 +418,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
-
     @Override
     public void onPlaybackError(Error error) {
         Log.d("MainActivity", "Playback error received: " + error.name());
@@ -544,8 +427,6 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
     }
-
-
 
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         rh.setStatus("online");
@@ -571,9 +452,7 @@ public class MainActivity extends AppCompatActivity
                         mPlayer = spotifyPlayer;
                         mPlayer.addConnectionStateCallback(MainActivity.this);
                         mPlayer.addNotificationCallback(MainActivity.this);
-
                     }
-
                     @Override
                     public void onError(Throwable throwable) {
                         Log.e("MainActivity", "Could not initialize player: " + throwable.getMessage());
@@ -591,12 +470,21 @@ public class MainActivity extends AppCompatActivity
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-
                 if (!isFinishing()) {
                     rh.showRequestAlert(MainActivity.this);
                 }
             }
         });
+    }
+
+    public void showPartnerUser(){
+        Log.d("SHOWPARTNERUSER","FUNCTION CALLED");
+        if (RequestHandler.getPartnerUser() != null){
+            Log.d("SHOWPARTNERUSER","FUNCTION ENTERED");
+            partnerUserView.setVisibility(View.VISIBLE);
+            partnerUserView.setText("Conectado com " + RequestHandler.getPartnerUser());
+            tv.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -611,6 +499,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void showPartnerName(String partnerName) {
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         if (rhloaded){
@@ -620,10 +512,20 @@ public class MainActivity extends AppCompatActivity
         }
 
     @Override
+    protected void onResume() {
+        if (rhloaded){
+            showPartnerUser();
+            rh.setStatus("online");
+        }
+        super.onResume();
+    }
+
+    @Override
     public void onSongChanged(final String songurl, final String imgurl, String timeStamp) {
+        tv.setVisibility(View.GONE);
+
         playSong(songurl);
         drawSongThumbnail(imgurl);
-
 
 //        alarmIntent = new Intent(MainActivity.this, AlarmReceiver.class);
 //        pendingIntent = PendingIntent.getBroadcast(MainActivity.this,0,alarmIntent,0);
@@ -656,7 +558,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBothClientsReady() {
+        Date start = new Date(Long.parseLong(ConnectionHandler.getInstance().getLastTimestamp()));
         Timer timer = new Timer();
+
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -664,8 +568,8 @@ public class MainActivity extends AppCompatActivity
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        String message = "Timer alarm Triggered";
-                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+//                        String message = "Timer alarm Triggered";
+//                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
                         mPlayer.resume(new Player.OperationCallback() {
                             @Override
                             public void onSuccess() {
@@ -675,10 +579,11 @@ public class MainActivity extends AppCompatActivity
                             public void onError(Error error) {
                             }
                         });
+//
                     }
                 });
             }
-        }, new Date(Long.parseLong(ConnectionHandler.getInstance().getLastTimestamp())));
+        }, start );
     }
 
 }

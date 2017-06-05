@@ -91,7 +91,6 @@ public class SearchFriendsActivity extends AppCompatActivity implements RequestH
             }
         });
 
-
 //        mDatabase.addValueEventListener(new ValueEventListener() {
 //            @Override
 //            public void onDataChange(DataSnapshot dataSnapshot) {
@@ -202,6 +201,11 @@ public class SearchFriendsActivity extends AppCompatActivity implements RequestH
 
     @Override
     public void onConnectionHandlerCreated() {
+
+    }
+
+    @Override
+    public void showPartnerName(String partnerName) {
 
     }
 

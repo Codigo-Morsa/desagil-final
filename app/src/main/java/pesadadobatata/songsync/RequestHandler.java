@@ -6,10 +6,12 @@ import android.app.Application;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.constraint.solver.widgets.Snapshot;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -49,13 +51,22 @@ class RequestHandler{
         return rh;
     }
     private LinkedList<Request> requestsList;
+    private String syncUid;
+    private String syncUsername;
+    private String hostUid;
+    private String hostUsername;
     DatabaseReference statusRef;
+    private DatabaseReference mDatabase;
+    private FirebaseAuth mAuth;
+    static String partnerUser;
 
 
     public RequestHandler() {
         // Checks is there is a new request on the user requests array
         statusRef = FirebaseDatabase.getInstance().getReference().child("users/" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "/status");
         requestsList = new LinkedList<>();
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("friendslist");
         DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("users/" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "/requests");
 //        Query childQuery = mDatabase.orderByKey().limitToLast(1);
         setStatus("online");
@@ -64,7 +75,8 @@ class RequestHandler{
         mDatabase.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Log.d("REQUEST_HANDLER", "New request recieved from " + dataSnapshot.child("username").getValue(String.class));
+                Log.d("REQUEST_HANDLER", "New request received from " + dataSnapshot.child("username").getValue(String.class));
+                partnerUser = dataSnapshot.child("username").getValue(String.class);
 //                for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
 //                    String uid = messageSnapshot.getKey();
 //                    Log.d("REQUEST_RECIEVER",uid);
@@ -116,7 +128,6 @@ class RequestHandler{
         final DatabaseReference connectionRef = FirebaseDatabase.getInstance().getReference().child("connections").child(syncid);
         Log.d("CONNECT","Trying to connect to " + connectionRef.getKey());
         final HashMap<String,String> client = new HashMap<>();
-        client.put("uid",FirebaseAuth.getInstance().getCurrentUser().getUid());
         client.put("username",FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
         connectionRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -124,6 +135,7 @@ class RequestHandler{
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     Log.d("DATA_CHANGED",ds.getKey());
                     if (Objects.equals(ds.getKey(), "host")){
+                        partnerUser = ds.child("username").getValue(String.class);
                         Log.d("CONNECT","Host is connected, connecting client");
                         connectionRef.child("client").setValue(client);
                         new ConnectionHandler(connectionRef.getKey());
@@ -146,9 +158,10 @@ class RequestHandler{
         String syncrequester = this.lastrequest.child("username").getValue(String.class);
         final DatabaseReference requestRef = FirebaseDatabase.getInstance().getReference("users/"+FirebaseAuth.getInstance().getCurrentUser().getUid()+"/requests/"+syncid);
 
-        new AlertDialog.Builder(activity)
+        final AlertDialog alert = new AlertDialog.Builder(activity)
                 .setTitle("Novo pedido de sync")
-                .setMessage("Sync ID:" + syncid + "\n" + "o usuário " + syncrequester + " solicitou uma sincronização com você")
+//                .setMessage("O usuário " + syncrequester + " solicitou uma sincronização com você")
+                .setMessage(Html.fromHtml("O usuário <b>" + syncrequester + "</b> solicitou uma sincronização com você"))
                 .setCancelable(false)
                 .setPositiveButton("Aceitar", new DialogInterface.OnClickListener() {
                     @Override
@@ -164,7 +177,15 @@ class RequestHandler{
                     public void onClick(DialogInterface dialog,int which){
                         requestRef.child("status").setValue("rejected");
                     }
-                }).show();
+                }).create();
+        alert.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface arg0) {
+                alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.GREEN);
+                alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.GRAY);
+            }
+        });
+        alert.show();
     }
 
     public Task<String> checkAvaiability(final String destinationId) {
@@ -192,10 +213,16 @@ class RequestHandler{
         return tcs.getTask();
     }
 
+    static String getPartnerUser(){
+        return partnerUser;
+    }
+
 
     public void sendRequest(final String destinationUid, final String destinationUsername) {
         // Deals with sent requests and its response;
         final FirebaseAuth mAuth = FirebaseAuth.getInstance();
+
+        partnerUser = destinationUsername;
 
         DatabaseReference requestRef = FirebaseDatabase.getInstance().getReference().child("users/" + destinationUid + "/requests");
 
@@ -204,7 +231,6 @@ class RequestHandler{
         request.put("username", mAuth.getCurrentUser().getDisplayName());
         request.put("destusr", destinationUsername);
         request.put("status", "sent");
-
 
         final DatabaseReference requestKeyRef = requestRef.push();
         String requestKey = requestKeyRef.getKey();
@@ -219,7 +245,7 @@ class RequestHandler{
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String requestKey = dataSnapshot.getKey();
                 String requestStatus = dataSnapshot.child("status").getValue(String.class);
-                Log.d("REQUEST_"+requestKey,requestStatus);
+                Log.d("REQUEST_",requestKey + " " + requestStatus);
 
                 if (Objects.equals(requestStatus, "rejected")){
                     Log.d("REF",dataSnapshot.getRef().toString());
@@ -230,10 +256,17 @@ class RequestHandler{
 //                    Log.d("REF",);
                     openConnection(requestKey,mAuth.getCurrentUser().getUid(),mAuth.getCurrentUser().getDisplayName(),
                             dataSnapshot.getRef().getParent().getParent().getKey(),dataSnapshot.child("destusr").getValue(String.class));
+                    syncUid = dataSnapshot.getRef().getParent().getParent().getKey();
+                    syncUsername = dataSnapshot.child("destusr").getValue(String.class);
+                    hostUid = mAuth.getCurrentUser().getUid();
+                    hostUsername = mAuth.getCurrentUser().getDisplayName();
+                    addNewFriendHost(syncUid, syncUsername);
+                    addNewFriendClient(hostUid, hostUsername);
                     dataSnapshot.getRef().removeEventListener(this);
                     dataSnapshot.getRef().removeValue();
                     rhl.onRequestAccepted();
                     new ConnectionHandler(requestKey);
+                    rhl.onConnectionHandlerCreated();
                 }
             }
 
@@ -267,6 +300,27 @@ class RequestHandler{
             FirebaseDatabase.getInstance().getReference("users/" + request.getDestination() + "/requests/" + request.getRequestKey()).removeValue();
         }
         requestsList.clear();
+    }
+
+    public String getSyncUid(){
+        return syncUid;
+    }
+    public String getSyncUsername(){
+        return syncUsername;
+    }
+
+    private void addNewFriendHost(String uid, String userName){
+        HashMap<String, Object> newFriend = new HashMap<>();
+        newFriend.put(uid, userName);
+        mDatabase.updateChildren(newFriend);
+        Log.d("alo antes dismissed", "alo");
+    }
+    private void addNewFriendClient(String uid, String userName){
+        DatabaseReference clientFirebase = FirebaseDatabase.getInstance().getReference().child("users").child(getSyncUid()).child("friendslist");
+        HashMap<String, Object> newFriend = new HashMap<>();
+        newFriend.put(uid, userName);
+        clientFirebase.updateChildren(newFriend);
+        Log.d("alo antes dismissed", "alo");
     }
 
 }

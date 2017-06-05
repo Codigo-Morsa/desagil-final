@@ -84,7 +84,7 @@
         android:shadowRadius="2"
         android:text="Escute com seus amigos suas músicas preferidas em perfeita sincronia através do Spotify©"
         android:textAlignment="center"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:textSize="18sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"

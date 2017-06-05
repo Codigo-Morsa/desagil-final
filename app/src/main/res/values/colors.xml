@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#1ed760</color>
-    <color name="colorPrimaryDark">#093619</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimaryDark">#c6ff00</color>
+    <color name="colorAccent">#ff6d00</color>
     <color name="semiGreen">#dc1c745f</color>
     <color name="fadingGreen">#8d004d40</color>
     <color name="spotifyGreen">#1ed760</color>
     <color name="slightGray">#fafafa</color>
+    <color name="btnColor">#1ed760 </color>
 </resources>

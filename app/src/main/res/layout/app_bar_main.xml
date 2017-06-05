@@ -28,8 +28,6 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/slightGray"
-            android:titleTextColor="@android:color/black"
-            android:theme="@style/appBarTheme">
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
             <ImageButton
@@ -47,7 +45,6 @@
 
 
     </android.support.design.widget.AppBarLayout>
-
 
 
     <include

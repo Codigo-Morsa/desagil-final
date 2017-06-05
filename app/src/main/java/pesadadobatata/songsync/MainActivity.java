@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -109,11 +110,14 @@ public class MainActivity extends AppCompatActivity
     private AlarmManager alarmMgr;
     private Intent alarmIntent;
     private PendingIntent pendingIntent;
+    private ConstraintLayout cl;
+    private DrawerLayout drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        final BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
         final Button loginbutton = (Button) findViewById(R.id.loginbutton);
         final Button signinbutton = (Button) findViewById(R.id.signinbutton);
         final ImageView iv = (ImageView) findViewById(R.id.imageView2);
@@ -124,11 +128,6 @@ public class MainActivity extends AppCompatActivity
         final Context context = getApplicationContext();
         LayoutInflater inflater = LayoutInflater.from(context);
         View cv = inflater.inflate(R.layout.content_main, null);
-
-        final ConstraintLayout cl = (ConstraintLayout) cv.findViewById(R.id.cl);
-
-        BottomNavigationView bottomNavigationView = (BottomNavigationView)
-                findViewById(R.id.bottom_navigation);
 
         bottomNavigationView.setOnNavigationItemSelectedListener(
                 new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -155,6 +154,19 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
 
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitleTextColor(Color.BLACK);
+        toolbar.hideOverflowMenu();
+        setSupportActionBar(toolbar);
+
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
         Log.d("eaemenkk", SpotifyAPI.getString());
         mAuth =  FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
@@ -171,7 +183,9 @@ public class MainActivity extends AppCompatActivity
                     loginbutton.setVisibility(View.GONE);
                     signinbutton.setVisibility(View.GONE);
                     iv.setVisibility(View.GONE);
-                    tv.setVisibility(View.GONE);
+                    tv.setText("Experimente conectar-se com um amigo para ouvir uma música em sincronia!");
+                    enableDrawer();
+                    bottomNavigationView.setVisibility(View.VISIBLE);
                     if (!MainActivity.this.hasToken){
                         SpotifyAPI.authSpotify(MainActivity.this);
                     }
@@ -185,10 +199,10 @@ public class MainActivity extends AppCompatActivity
 
                     rh.setRequestHandlerListener(MainActivity.this);
 
-//
-
                 } else {
                     // User is signed out
+                    bottomNavigationView.setVisibility(View.INVISIBLE);
+                    thumbnail.setVisibility(View.GONE);
                     userState = false;
                     rh = null;
                     rhloaded = false;
@@ -197,16 +211,13 @@ public class MainActivity extends AppCompatActivity
                     signinbutton.setVisibility(View.VISIBLE);
                     iv.setVisibility(View.VISIBLE);
                     tv.setVisibility(View.VISIBLE);
+                    disableDrawer();
                 }
 
             }
         };
 
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitleTextColor(Color.BLACK);
-        toolbar.set
-        setSupportActionBar(toolbar);
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -217,17 +228,20 @@ public class MainActivity extends AppCompatActivity
 //            }
 //        });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
 //        Inflater searchButton = Inflate r;
 //        View cv = inflater.inflate(R.layout.content_main, null);
+    }
+
+    public void enableDrawer(){
+        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+    }
+
+    public void disableDrawer(){
+        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
     }
 
     public void goToSearchActivity(){
@@ -270,7 +284,6 @@ public class MainActivity extends AppCompatActivity
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
 //        inflate(R.layout.app_bar_main,menu);
-
         return true;
     }
 

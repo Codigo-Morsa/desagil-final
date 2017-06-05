@@ -56,6 +56,7 @@ public class FriendsActivity extends AppCompatActivity implements RequestHandler
         mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
         userNames = new LinkedList<>();
         super.onCreate(savedInstanceState);
+        setTitle("Lista de amigos");
 
         rh = RequestHandler.getInstance();
         try{

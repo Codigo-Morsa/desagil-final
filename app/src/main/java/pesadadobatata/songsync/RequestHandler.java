@@ -51,13 +51,22 @@ class RequestHandler{
         return rh;
     }
     private LinkedList<Request> requestsList;
+    private String syncUid;
+    private String syncUsername;
+    private String hostUid;
+    private String hostUsername;
     DatabaseReference statusRef;
+
+    private DatabaseReference mDatabase;
+    private FirebaseAuth mAuth;
 
 
     public RequestHandler() {
         // Checks is there is a new request on the user requests array
         statusRef = FirebaseDatabase.getInstance().getReference().child("users/" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "/status");
         requestsList = new LinkedList<>();
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("friendslist");
         DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("users/" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "/requests");
 //        Query childQuery = mDatabase.orderByKey().limitToLast(1);
         setStatus("online");
@@ -241,6 +250,12 @@ class RequestHandler{
 //                    Log.d("REF",);
                     openConnection(requestKey,mAuth.getCurrentUser().getUid(),mAuth.getCurrentUser().getDisplayName(),
                             dataSnapshot.getRef().getParent().getParent().getKey(),dataSnapshot.child("destusr").getValue(String.class));
+                    syncUid = dataSnapshot.getRef().getParent().getParent().getKey();
+                    syncUsername = dataSnapshot.child("destusr").getValue(String.class);
+                    hostUid = mAuth.getCurrentUser().getUid();
+                    hostUsername = mAuth.getCurrentUser().getDisplayName();
+                    addNewFriendHost(syncUid, syncUsername);
+                    addNewFriendClient(hostUid, hostUsername);
                     dataSnapshot.getRef().removeEventListener(this);
                     dataSnapshot.getRef().removeValue();
                     rhl.onRequestAccepted();
@@ -278,6 +293,27 @@ class RequestHandler{
             FirebaseDatabase.getInstance().getReference("users/" + request.getDestination() + "/requests/" + request.getRequestKey()).removeValue();
         }
         requestsList.clear();
+    }
+
+    public String getSyncUid(){
+        return syncUid;
+    }
+    public String getSyncUsername(){
+        return syncUsername;
+    }
+
+    private void addNewFriendHost(String uid, String userName){
+        HashMap<String, Object> newFriend = new HashMap<>();
+        newFriend.put(uid, userName);
+        mDatabase.updateChildren(newFriend);
+        Log.d("alo antes dismissed", "alo");
+    }
+    private void addNewFriendClient(String uid, String userName){
+        DatabaseReference clientFirebase = FirebaseDatabase.getInstance().getReference().child("users").child(getSyncUid()).child("friendslist");
+        HashMap<String, Object> newFriend = new HashMap<>();
+        newFriend.put(uid, userName);
+        clientFirebase.updateChildren(newFriend);
+        Log.d("alo antes dismissed", "alo");
     }
 
 }

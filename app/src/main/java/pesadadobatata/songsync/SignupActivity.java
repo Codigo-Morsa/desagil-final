@@ -19,6 +19,7 @@ import android.support.annotation.NonNull;
 import com.google.firebase.auth.AuthResult;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
@@ -131,10 +132,13 @@ public class SignupActivity extends AppCompatActivity implements OnCompleteListe
     private void writeNewUser(String userId, String name) {
         HashMap<String, String> user = new HashMap<>();
         user.put("username", name);
+        HashMap<String, String> friendslist = new HashMap<>();
+        friendslist.put("0", " ");
         HashMap<String, String> username = new HashMap<>();
         username.put("uid", userId);
         mDatabase.child("users").child(userId).setValue(user);
         mDatabase.child("usernames").child(name.toLowerCase()).setValue(username);
+        mDatabase.child("users").child(userId).child("friendslist").setValue(friendslist);
     }
 
     public void onSignupFailed() {
